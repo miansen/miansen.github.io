@@ -1,0 +1,10 @@
+# Created by .ignore support plugin (hsz.mobi)
+.idea
+*.iml
+.DS_Store
+_site
+.sass-cache
+Gemfile.lock
+_posts/2018-08-18-1.md
+_posts/2018-08-25-1.md
+_posts/18390800450.md
