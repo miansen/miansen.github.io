@@ -1,4 +1,6 @@
-> 本项目前身是fork项目[tomoya92.github.io](https://github.com/tomoya92/tomoya92.github.io)
+# 部署说明
+
+本项目前身是fork项目[tomoya92.github.io](https://github.com/tomoya92/tomoya92.github.io)
 
 ## 预览
 
