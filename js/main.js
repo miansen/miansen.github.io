@@ -1,7 +1,7 @@
 $(function () {
 
   // 替换代码块中 p 标签的 class
-  $("p.err").toggleClass("p");
+  $(".highlighter-rouge span.err").toggleClass("p");
 
   $(".fa-chevron-right").each(function(index){
     if (index === 1) {
