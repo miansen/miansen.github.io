@@ -6,7 +6,7 @@ layout: default
     {% for post in paginator.posts %}
       <div class="panel">
         <div class="panel-body">
-          <h1><a href="{{ post.url | prepend: site.baseurl }}" class="title">{{ post.title }}</a></h1>
+          <h2><a href="{{ post.url | prepend: site.baseurl }}" class="title">{{ post.title }}</a></h2>
           <small>
             <span class="item">
               <i class="fa fa-calendar-check-o"></i> {{post.date | date: '%F'}}
