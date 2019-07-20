@@ -28,13 +28,13 @@ Elasticsearch 是一个 nosql 数据库，比传统的关系型数据库厉害�
 
 我这里下载的是最新版本
 
-```
+```shell
 wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.2.0-linux-x86_64.tar.gz
 ```
 
 我直接解压在当前目录了
 
-```
+```shell
 tar zxvf elasticsearch-7.2.0-linux-x86_64.tar.gz -C
 ```
 
@@ -42,7 +42,7 @@ tar zxvf elasticsearch-7.2.0-linux-x86_64.tar.gz -C
 
 输入以下命令运行 elasticsearch
 
-```
+```shell
 cd elasticsearch-7.2.0
 ./bin/elasticsearch
 ```
@@ -55,13 +55,13 @@ lasticsearchException[X-Pack is not supported and Machine Learning is not availa
 
 则编辑 elasticsearch.yml 文件
 
-```
+```shell
 vi config/elasticsearch.yml
 ```
 
 在最末尾加入以下配置
 
-```
+```yml
 xpack.ml.enabled: false
 ```
 
@@ -71,7 +71,7 @@ xpack.ml.enabled: false
 
 如果启动成功，当前窗口会一直堵塞着，这时候打开另一个窗口访问`curl http://localhost:9200?pretty`，会输出以下信息：
 
-```
+```json
 [sen@localhost elasticsearch-7.2.0]$ curl http://localhost:9200?pretty
 {
   "name" : "localhost.localdomain",
@@ -136,13 +136,13 @@ Elasticsearch -> Indices   -> Types  -> Documents -> Fields
 
 所以我们先创建一个索引，elasticsearch 的 API 是基于 TCP/IP 的，所以我们可以发送 PUT 请求创建索引
 
-```
+```shell
 curl -X PUT 'http://localhost:9200/customer'
 ```
 
 响应结果：
 
-```
+```json
 {"acknowledged":true,"shards_acknowledged":true,"index":"customer"}
 ```
 
@@ -152,13 +152,13 @@ curl -X PUT 'http://localhost:9200/customer'
 
 发起 delete 请求删除索引
 
-```
+```shell
 curl -X DELETE 'http://localhost:9200/customer'
 ```
 
 响应结果：
 
-```
+```json
 {"acknowledged":true}
 ```
 
@@ -168,7 +168,7 @@ curl -X DELETE 'http://localhost:9200/customer'
 
 向指定的 index/type/id 发送 put 请求，就可以索引文档
 
-```
+```shell
 curl -X PUT 'http://localhost:9200/customer/user/1' -H 'Content-Type:application/json' -d '{"username":"zhangsan","age":14}'
 ```
 
@@ -184,7 +184,7 @@ curl -X PUT 'http://localhost:9200/customer/user/1' -H 'Content-Type:application
 
 响应结果：
 
-```
+```json
 {"_index":"customer","_type":"user","_id":"1","_version":1,"result":"created","_shards":{"total":2,"successful":1,"failed":0},"_seq_no":0,"_primary_term":1}
 ```
 
@@ -194,13 +194,13 @@ PUT 请求在 RESTful 里对应的 CURD 操作是更新，如果在 elasticsearc
 
 我们可以再次发送一下上面的 PUT 请求，不过 username 的值换成 lisi
 
-```
+```shell
 curl -X PUT 'http://localhost:9200/customer/user/1' -H 'Content-Type:application/json' -d '{"username":"lisi","age":14}'
 ```
 
 响应结果：
 
-```
+```json
 {"_index":"customer","_type":"user","_id":"1","_version":2,"result":"updated","_shards":{"total":2,"successful":1,"failed":0},"_seq_no":1,"_primary_term":1}
 ```
 
@@ -210,13 +210,13 @@ elasticsearch 每条文档都有一个 _version 字段，记录着这条文档�
 
 要想发起真正的索引请求，可以用 POST，不过不要指定 id
 
-```
+```shell
 curl -X POST 'http://localhost:9200/customer/user' -H 'Content-Type:application/json' -d '{"username":"haha","age":14}'
 ```
 
 响应结果：
 
-```
+```json
 {"_index":"customer","_type":"user","_id":"ICGAEWwB7frJTf7vsLAQ","_version":1,"result":"created","_shards":{"total":2,"successful":1,"failed":0},"_seq_no":3,"_primary_term":1}
 ```
 
@@ -230,13 +230,13 @@ POST 请求其实也可以指定 id 的，不过如果指定的 id 已存在的�
 
 发起 delete 请求删除文档
 
-```
+```shell
 curl -X DELETE 'http://localhost:9200/customer/user/1'
 ```
 
 响应结果：
 
-```
+```json
 {"_index":"customer","_type":"user","_id":"1","_version":2,"result":"deleted","_shards":{"total":2,"successful":1,"failed":0},"_seq_no":2,"_primary_term":1}
 ```
 
@@ -244,7 +244,7 @@ curl -X DELETE 'http://localhost:9200/customer/user/1'
 
 如果文档未找到，我们将得到一个404 Not Found状态码，响应体是这样的：
 
-```
+```json
 {
   "_index" : "customer",
   "_type" : "user",
