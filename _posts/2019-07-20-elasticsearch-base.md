@@ -260,3 +260,782 @@ curl -X DELETE 'http://localhost:9200/customer/user/1'
   "_primary_term" : 1
 }
 ```
+
+## 查询文档
+
+查询之前先索引一些文档，方便后面的查询操作
+
+```shell
+curl -X PUT 'http://localhost:9200/megacorp/employee/1' -H 'Content-Type:application/json' -d '{"first_name":"John","last_name":"Smith","age":25,"about":"I love to go rock climbing","interests":["sports","music"]}'
+```
+
+```shell
+curl -X PUT 'http://localhost:9200/megacorp/employee/2' -H 'Content-Type:application/json' -d '{"first_name":"Jane","last_name":"Smith","age":32,"about":"I like to collect rock albums","interests":["music"]}'
+```
+
+```shell
+curl -X PUT 'http://localhost:9200/megacorp/employee/3' -H 'Content-Type:application/json' -d '{"first_name":"Douglas","last_name":"Fir","age":35,"about":"I like to build cabinets","interests":["forestry"]}'
+```
+
+一共索引了3条文档
+
+### 简单查询
+
+发起 GET 请求，**索引/类型/id** 就可以定位到一个文档。
+
+比如我们想要查询第一个员工的文档，可以发起这个请求：
+
+```shell
+ curl -X GET 'http://localhost:9200/megacorp/employee/1?pretty=true'
+```
+
+url 后面加上 "pretty=true" 的作用是返回格式化后的 JSON
+
+响应结果：
+
+```json
+{
+  "_index" : "megacorp",
+  "_type" : "employee",
+  "_id" : "1",
+  "_version" : 2,
+  "_seq_no" : 1,
+  "_primary_term" : 2,
+  "found" : true,
+  "_source" : {
+    "first_name" : "John",
+    "last_name" : "Smith",
+    "age" : 25,
+    "about" : "I love to go rock climbing",
+    "interests" : [
+      "sports",
+      "music"
+    ]
+  }
+}
+```
+
+原始的 JSON 文档包含在 "_source" 字段里，其他的字段是文档的**元信息**
+
+### 简单搜索
+
+我们想要搜索全部员工的文档，可以发起这个请求：
+
+```shell
+curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true'
+```
+
+还是用 megacorp 索引和 employee 类型查询，不过这次用 **_search** 取代原来的文档 ID
+
+响应结果：
+
+```json
+{
+  "took" : 14,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 3,
+      "relation" : "eq"
+    },
+    "max_score" : 1.0,
+    "hits" : [
+      {
+        "_index" : "megacorp",
+        "_type" : "employee",
+        "_id" : "1",
+        "_score" : 1.0,
+        "_source" : {
+          "first_name" : "John",
+          "last_name" : "Smith",
+          "age" : 25,
+          "about" : "I love to go rock climbing",
+          "interests" : [
+            "sports",
+            "music"
+          ]
+        }
+      },
+      {
+        "_index" : "megacorp",
+        "_type" : "employee",
+        "_id" : "2",
+        "_score" : 1.0,
+        "_source" : {
+          "first_name" : "Jane",
+          "last_name" : "Smith",
+          "age" : 32,
+          "about" : "I like to collect rock albums",
+          "interests" : [
+            "music"
+          ]
+        }
+      },
+      {
+        "_index" : "megacorp",
+        "_type" : "employee",
+        "_id" : "3",
+        "_score" : 1.0,
+        "_source" : {
+          "first_name" : "Douglas",
+          "last_name" : "Fir",
+          "age" : 35,
+          "about" : "I like to build cabinets",
+          "interests" : [
+            "forestry"
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+hits 数组中包含了我们所有的三个文档，默认情况下搜索会返回前10个结果。
+
+### 查询字符串搜索
+
+我们想要搜索姓氏中包含 **"Smith"** 的员工，可以使用查询字符串(query string)搜索。
+
+在请求中依旧使用 _search 关键字，然后将查询语句传递给参数 **q=**，比如这条请求：
+
+```shell
+curl -X GET 'http://localhost:9200/megacorp/employee/_search?q=last_name:Smith&pretty=true'
+```
+
+响应结果：
+
+```json
+{
+  "took" : 95,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 2,
+      "relation" : "eq"
+    },
+    "max_score" : 0.47000363,
+    "hits" : [
+      {
+        "_index" : "megacorp",
+        "_type" : "employee",
+        "_id" : "1",
+        "_score" : 0.47000363,
+        "_source" : {
+          "first_name" : "John",
+          "last_name" : "Smith",
+          "age" : 25,
+          "about" : "I love to go rock climbing",
+          "interests" : [
+            "sports",
+            "music"
+          ]
+        }
+      },
+      {
+        "_index" : "megacorp",
+        "_type" : "employee",
+        "_id" : "2",
+        "_score" : 0.47000363,
+        "_source" : {
+          "first_name" : "Jane",
+          "last_name" : "Smith",
+          "age" : 32,
+          "about" : "I like to collect rock albums",
+          "interests" : [
+            "music"
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+姓氏为 "Smith" 的员工就找到了，一共有两条。
+
+### DSL语句查询
+
+使用 DSL语句查询可以构建更加复杂、强大的查询。
+
+DSL语句以 JSON 请求体的形式出现。
+
+比如我们可以这样表示之前关于 "Smith" 的查询：
+
+```shell
+curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"match":{"last_name":"Smith"}}}'
+```
+
+响应的结果跟之前是一样的。只是这次我们不是使用参数的形式，而是使用**请求体**形式。
+
+这个请求体的格式如下：
+
+```json
+{
+    "query" : {
+        "match" : {
+            "last_name" : "Smith"
+        }
+    }
+}
+```
+
+#### 全文搜索
+
+传入 **"match"** 字段可以实现全文搜索，类似于关系型数据库中的模糊查询。
+
+使用 match 查询时，会先对输入进行分词，对分词后的结果进行查询，文档只要包含 match 查询条件的一部分就会被返回。
+
+我们搜索所有喜欢“rock climbing”的员工：
+
+```shell
+curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"match":{"about":"rock climbing"}}}'
+```
+
+响应结果：
+
+```json
+{
+  "took" : 95,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 2,
+      "relation" : "eq"
+    },
+    "max_score" : 1.4167402,
+    "hits" : [
+      {
+        "_index" : "megacorp",
+        "_type" : "employee",
+        "_id" : "1",
+        "_score" : 1.4167402,
+        "_source" : {
+          "first_name" : "John",
+          "last_name" : "Smith",
+          "age" : 25,
+          "about" : "I love to go rock climbing",
+          "interests" : [
+            "sports",
+            "music"
+          ]
+        }
+      },
+      {
+        "_index" : "megacorp",
+        "_type" : "employee",
+        "_id" : "2",
+        "_score" : 0.45895916,
+        "_source" : {
+          "first_name" : "Jane",
+          "last_name" : "Smith",
+          "age" : 32,
+          "about" : "I like to collect rock albums",
+          "interests" : [
+            "music"
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+> 默认情况下，Elasticsearch根据结果相关性评分来对结果集进行排序，所谓的「结果相关性评分」就是文档与查询条件的匹配程度。很显然，排名第一的John
+> Smith的about字段明确的写到“rock climbing”。
+> 但是为什么Jane Smith也会出现在结果里呢？原因是“rock”在她的abuot字段中被提及了。因为只有“rock”被提及而“climbing”没有，所以她的_score要低于John。
+
+#### 短语搜索
+
+有时候你想要确切的匹配若干个单词或者短语，想要查询同时包含"rock"和"climbing"（并且是相邻的）的员工记录。
+
+要做到这个，我们只要将match查询变更为match_phrase查询即可：
+
+```shell
+curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"match_phrase":{"about":"rock climbing"}}}'
+```
+
+响应结果：
+
+```json
+{
+  "took" : 75,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 1,
+      "relation" : "eq"
+    },
+    "max_score" : 1.4167402,
+    "hits" : [
+      {
+        "_index" : "megacorp",
+        "_type" : "employee",
+        "_id" : "1",
+        "_score" : 1.4167402,
+        "_source" : {
+          "first_name" : "John",
+          "last_name" : "Smith",
+          "age" : 25,
+          "about" : "I love to go rock climbing",
+          "interests" : [
+            "sports",
+            "music"
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+#### 分页
+
+我们可以传入 **"from"** 和 **"size"** 字段构建分页
+
+```shell
+curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"match":{"last_name":"Smith"}},"from":1,"size":2}'
+```
+
+响应结果：
+
+```json
+{
+  "took" : 18,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 2,
+      "relation" : "eq"
+    },
+    "max_score" : 0.47000363,
+    "hits" : [
+      {
+        "_index" : "megacorp",
+        "_type" : "employee",
+        "_id" : "2",
+        "_score" : 0.47000363,
+        "_source" : {
+          "first_name" : "Jane",
+          "last_name" : "Smith",
+          "age" : 32,
+          "about" : "I like to collect rock albums",
+          "interests" : [
+            "music"
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+from参数(基于0)指定从哪个文档索引开始，size参数指定从from参数开始返回多少文档。
+
+注意，没有指定from，则默认值为0。
+
+#### 排序
+
+我们可以传入 **"sort"** 字段进行排序。
+
+比如我们想搜索姓氏为 "Smith" 的文档，取第1到第10条，并按年龄降序排序，可以发起这样的请求：
+
+```shell
+curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"match":{"last_name":"Smith"}},"from":0,"size":10,"sort":{"age":{"order":"desc"}}}'
+```
+
+请求体的 json 是这样的：
+
+```json
+{
+  "query": {
+    "match": {
+      "last_name": "Smith"
+    }
+  },
+  "from": 0,
+  "size": 10,
+  "sort": {
+    "age": {
+      "order": "desc"
+    }
+  }
+}
+```
+
+#### 返回指定字段
+
+我们如果只想要查询特定字段，可以在请求体中传入 "_source" 字段。
+
+```shell
+curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"match":{"last_name":"Smith"}},"_source":["first_name","last_name"]}'
+```
+
+响应结果：
+
+```json
+{
+  "took" : 23,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 2,
+      "relation" : "eq"
+    },
+    "max_score" : 0.47000363,
+    "hits" : [
+      {
+        "_index" : "megacorp",
+        "_type" : "employee",
+        "_id" : "1",
+        "_score" : 0.47000363,
+        "_source" : {
+          "last_name" : "Smith",
+          "first_name" : "John"
+        }
+      },
+      {
+        "_index" : "megacorp",
+        "_type" : "employee",
+        "_id" : "2",
+        "_score" : 0.47000363,
+        "_source" : {
+          "last_name" : "Smith",
+          "first_name" : "Jane"
+        }
+      }
+    ]
+  }
+}
+```
+
+#### bool 查询
+
+bool 查询允许我们使用布尔逻辑，相当于 SQL 语句的 "and" 和 "or"
+
+我们搜索名字等于 "Jane" **并且**姓氏等于 "Smith" 的员工
+
+```shell
+curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"bool":{"must":[{"match":{"first_name":"John"}},{"match":{"last_name":"Smith"}}]}}}'
+```
+
+请求体如下：
+
+```json
+{
+  "query": {
+    "bool": {
+      "must": [{
+        "match": {
+          "first_name": "John"
+        }
+      }, {
+        "match": {
+          "last_name": "Smith"
+        }
+      }]
+    }
+  }
+}
+```
+
+在这条请求中，**bool must** 子句指定了所有必须**都为true**的查询，也就是两个都为真，才会将文档视为匹配。
+
+响应结果：
+
+```json
+{
+  "took" : 26,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 1,
+      "relation" : "eq"
+    },
+    "max_score" : 1.4508328,
+    "hits" : [
+      {
+        "_index" : "megacorp",
+        "_type" : "employee",
+        "_id" : "1",
+        "_score" : 1.4508328,
+        "_source" : {
+          "first_name" : "John",
+          "last_name" : "Smith",
+          "age" : 25,
+          "about" : "I love to go rock climbing",
+          "interests" : [
+            "sports",
+            "music"
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+搜索姓氏等于 "Fir" **或者** "Johnson" 的员工
+
+```shell
+curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"bool":{"should":[{"match":{"last_name":"Fir"}},{"match":{"last_name":"Johnson"}}]}}}'
+```
+
+请求体如下：
+
+```json
+{
+  "query": {
+    "bool": {
+      "should": [{
+        "match": {
+          "last_name": "Fir"
+        }
+      }, {
+        "match": {
+          "last_name": "Johnson"
+        }
+      }]
+    }
+  }
+}
+```
+
+在这条请求中，**bool should** 子句指定了**只要有一个为true**的查询，也就是只要有一个为真，就会将文档视为匹配。
+
+响应结果：
+
+```json
+{
+  "took" : 5,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 1,
+      "relation" : "eq"
+    },
+    "max_score" : 0.9808292,
+    "hits" : [
+      {
+        "_index" : "megacorp",
+        "_type" : "employee",
+        "_id" : "3",
+        "_score" : 0.9808292,
+        "_source" : {
+          "first_name" : "Douglas",
+          "last_name" : "Fir",
+          "age" : 35,
+          "about" : "I like to build cabinets",
+          "interests" : [
+            "forestry"
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+搜索名字不等于 "John" 并且姓氏不等于 "Smith" 的员工
+
+```shell
+curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"bool":{"must_not":[{"match":{"first_name":"John"}},{"match":{"last_name":"Johnson"}}]}}}'
+```
+
+请求体如下：
+
+```json
+{
+  "query": {
+    "bool": {
+      "must_not": [{
+        "match": {
+          "first_name": "John"
+        }
+      }, {
+        "match": {
+          "last_name": "Johnson"
+        }
+      }]
+    }
+  }
+}
+```
+
+在这条请求中，**bool must_not** 子句指定了必须**都不为true**的查询，也就是两个都为假，才会将文档视为匹配。
+
+响应结果：
+
+```json
+{
+  "took" : 17,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 2,
+      "relation" : "eq"
+    },
+    "max_score" : 0.0,
+    "hits" : [
+      {
+        "_index" : "megacorp",
+        "_type" : "employee",
+        "_id" : "2",
+        "_score" : 0.0,
+        "_source" : {
+          "first_name" : "Jane",
+          "last_name" : "Smith",
+          "age" : 32,
+          "about" : "I like to collect rock albums",
+          "interests" : [
+            "music"
+          ]
+        }
+      },
+      {
+        "_index" : "megacorp",
+        "_type" : "employee",
+        "_id" : "3",
+        "_score" : 0.0,
+        "_source" : {
+          "first_name" : "Douglas",
+          "last_name" : "Fir",
+          "age" : 35,
+          "about" : "I like to build cabinets",
+          "interests" : [
+            "forestry"
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+#### 过滤器查询
+
+我们想要找到姓氏为“Smith”的员工，但是我们只想得到年龄大于30岁的员工。
+
+这时可以使用过滤器（filter）查询。
+
+```shell
+curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"bool":{"filter":{"range":{"age":{"gt":30}}},"must":{"match":{"last_name":"Smith"}}}}}'
+```
+
+请求体如下：
+
+```json
+{
+  "query": {
+    "bool": {
+      "filter": {
+        "range": {
+          "age": {
+            "gt": 30
+          }
+        }
+      },
+      "must": {
+        "match": {
+          "last_name": "Smith"
+        }
+      }
+    }
+  }
+}
+```
+
+bool 查询包含一个 match 查询(查询部分)和一个 range 查询(筛选部分)
+
+响应结果：
+
+```json
+{
+  "took" : 95,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 1,
+      "relation" : "eq"
+    },
+    "max_score" : 0.47000363,
+    "hits" : [
+      {
+        "_index" : "megacorp",
+        "_type" : "employee",
+        "_id" : "2",
+        "_score" : 0.47000363,
+        "_source" : {
+          "first_name" : "Jane",
+          "last_name" : "Smith",
+          "age" : 32,
+          "about" : "I like to collect rock albums",
+          "interests" : [
+            "music"
+          ]
+        }
+      }
+    ]
+  }
+}
+```
