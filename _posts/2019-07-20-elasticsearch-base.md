@@ -283,13 +283,19 @@ curl -X PUT 'http://localhost:9200/megacorp/employee/3' -H 'Content-Type:applica
 
 发起 GET 请求，**索引/类型/id** 就可以定位到一个文档。
 
-比如我们想要查询第一个员工的文档，可以发起这个请求：
+比如我们想要查询第一个员工的文档，用 SQL 是这么写的：
+
+```sql
+select * from employee a where a.id = 1;
+```
+
+在 elasticsearch 中，对应的请求是这样：
 
 ```shell
  curl -X GET 'http://localhost:9200/megacorp/employee/1?pretty=true'
 ```
 
-url 后面加上 "pretty=true" 的作用是返回格式化后的 JSON
+url 后面加上 "pretty=true" 的作用是返回格式化后的 JSON，更容易阅读。
 
 响应结果：
 
@@ -319,7 +325,13 @@ url 后面加上 "pretty=true" 的作用是返回格式化后的 JSON
 
 ### 简单搜索
 
-我们想要搜索全部员工的文档，可以发起这个请求：
+我们想要搜索全部员工的文档，用 SQL 是这么写的：
+
+```sql
+select * from employee a;
+```
+
+在 elasticsearch 中，对应的请求是这样：
 
 ```shell
 curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true'
@@ -401,9 +413,15 @@ hits 数组中包含了我们所有的三个文档，默认情况下搜索会返
 
 ### 查询字符串搜索
 
-我们想要搜索姓氏中包含 **"Smith"** 的员工，可以使用查询字符串(query string)搜索。
+我们想要搜索姓氏中包含 **"Smith"** 的员工，用 SQL 是这么写的：
 
-在请求中依旧使用 _search 关键字，然后将查询语句传递给参数 **q=**，比如这条请求：
+```sql
+select * from employee a where a.last_name = 'Smith';
+```
+
+在 elasticsearch 中，可以使用查询字符串(query string)搜索。
+
+在请求中依旧使用 _search 关键字，然后将查询语句传递给参数 **q=**，就像下面这条请求一样：
 
 ```shell
 curl -X GET 'http://localhost:9200/megacorp/employee/_search?q=last_name:Smith&pretty=true'
@@ -472,7 +490,7 @@ curl -X GET 'http://localhost:9200/megacorp/employee/_search?q=last_name:Smith&p
 
 DSL语句以 JSON 请求体的形式出现。
 
-比如我们可以这样表示之前关于 "Smith" 的查询：
+比如我们可以这样表示之前关于 "Smith" 的查询，用 DSL 语句查询可以这样写：
 
 ```shell
 curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"match":{"last_name":"Smith"}}}'
@@ -492,13 +510,24 @@ curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Co
 }
 ```
 
+可以看到 match 字段里包含了我们想要搜索的信息。
+
 #### 全文搜索
 
 传入 **"match"** 字段可以实现全文搜索，类似于关系型数据库中的模糊查询。
 
 使用 match 查询时，会先对输入进行分词，对分词后的结果进行查询，文档只要包含 match 查询条件的一部分就会被返回。
 
-我们搜索所有喜欢“rock climbing”的员工：
+我们搜索所有喜欢 "rock climbing" 的员工，用 SQL 是这么写的：
+
+```sql
+select * from employee a 
+where a.about like '%rock climbing"%'
+or a.about like '%rock"%'
+or a.about like '%climbing"%';
+```
+
+在 elasticsearch 中是这么写的：
 
 ```shell
 curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"match":{"about":"rock climbing"}}}'
@@ -567,7 +596,13 @@ curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Co
 
 有时候你想要确切的匹配若干个单词或者短语，想要查询同时包含"rock"和"climbing"（并且是相邻的）的员工记录。
 
-要做到这个，我们只要将match查询变更为match_phrase查询即可：
+要做到这个，我们用 SQL 是这么写的：
+
+```sql
+select * from employee a where a.about = 'rock climbing';
+```
+
+在 elasticsearch 中，只要将 match 查询变更为 match_phrase 查询即可：
 
 ```shell
 curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"match_phrase":{"about":"rock climbing"}}}'
@@ -615,7 +650,13 @@ curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Co
 
 #### 分页
 
-我们可以传入 **"from"** 和 **"size"** 字段构建分页
+在 SQL 中，构建分页我们是这样写的：
+
+```sql
+select * from employee a limit 0,10;
+```
+
+在 elasticsearch 中，我们可以传入 **"from"** 和 **"size"** 字段构建分页：
 
 ```shell
 curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"match":{"last_name":"Smith"}},"from":1,"size":2}'
@@ -660,15 +701,22 @@ curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Co
 }
 ```
 
-from参数(基于0)指定从哪个文档索引开始，size参数指定从from参数开始返回多少文档。
+from 参数(基于0)指定从哪个文档索引开始，size 参数指定从 from 参数开始返回多少文档。
 
 注意，没有指定from，则默认值为0。
 
 #### 排序
 
-我们可以传入 **"sort"** 字段进行排序。
+我们想搜索姓氏为 "Smith" 的文档，取第1到第10条，并按年龄降序排序，用 SQL 是这样写的：
 
-比如我们想搜索姓氏为 "Smith" 的文档，取第1到第10条，并按年龄降序排序，可以发起这样的请求：
+```sql
+select * from employee a 
+where a.last_name = 'Smith'
+order by a.age desc
+limit 1,10;
+```
+
+在 elasticsearch 中，我们可以传入 **"sort"** 字段进行排序，比如下面这条请求：
 
 ```shell
 curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"match":{"last_name":"Smith"}},"from":0,"size":10,"sort":{"age":{"order":"desc"}}}'
@@ -695,7 +743,13 @@ curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Co
 
 #### 返回指定字段
 
-我们如果只想要查询特定字段，可以在请求体中传入 "_source" 字段。
+我们如果只想要查询特定字段，用 SQL 是这样写的：
+
+```sql
+select a.first_name,a.last_name from employee a where a.last_name = 'Smith';
+```
+
+在 elasticsearch 中，可以在请求体中传入 "_source" 字段：
 
 ```shell
 curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"match":{"last_name":"Smith"}},"_source":["first_name","last_name"]}'
@@ -750,6 +804,14 @@ curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Co
 bool 查询允许我们使用布尔逻辑，相当于 SQL 语句的 "and" 和 "or"
 
 我们搜索名字等于 "Jane" **并且**姓氏等于 "Smith" 的员工
+
+用 SQL 是这样写的：
+
+```sql
+select * from employee a where a.first_name = 'John' and a.last_name = 'Smith';
+```
+
+在 elasticsearch 中，是这样写的：
 
 ```shell
 curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"bool":{"must":[{"match":{"first_name":"John"}},{"match":{"last_name":"Smith"}}]}}}'
@@ -819,6 +881,14 @@ curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Co
 
 搜索姓氏等于 "Fir" **或者** "Johnson" 的员工
 
+用 SQL 是这样写的：
+
+```sql
+select * from employee a where a.last_name = 'Fir' or a.last_name = 'Johnson';
+```
+
+在 elasticsearch 中，是这样写的：
+
 ```shell
 curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"bool":{"should":[{"match":{"last_name":"Fir"}},{"match":{"last_name":"Johnson"}}]}}}'
 ```
@@ -884,7 +954,15 @@ curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Co
 }
 ```
 
-搜索名字不等于 "John" 并且姓氏不等于 "Smith" 的员工
+搜索名字不等于 "John" 并且姓氏不等于 "Johnson" 的员工
+
+用 SQL 是这样写的：
+
+```sql
+select * from employee a where a.first_name != 'John' and a.last_name != 'Johnson';
+```
+
+在 elasticsearch 中，是这样写的：
 
 ```shell
 curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"bool":{"must_not":[{"match":{"first_name":"John"}},{"match":{"last_name":"Johnson"}}]}}}'
@@ -968,9 +1046,15 @@ curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Co
 
 #### 过滤器查询
 
-我们想要找到姓氏为“Smith”的员工，但是我们只想得到年龄大于30岁的员工。
+我们想要找到姓氏为 "Smith" 的员工，但是我们只想得到年龄大于30岁的员工。
 
-这时可以使用过滤器（filter）查询。
+用 SQL 是这样写的：
+
+```sql
+select * from employee a where a.last_name = 'Smith' and a.age > 30;
+```
+
+在 elasticsearch 中，可以使用过滤器（filter）查询，比如下面这条请求：
 
 ```shell
 curl -X GET 'http://localhost:9200/megacorp/employee/_search?pretty=true' -H 'Content-Type:application/json' -d '{"query":{"bool":{"filter":{"range":{"age":{"gt":30}}},"must":{"match":{"last_name":"Smith"}}}}}'
