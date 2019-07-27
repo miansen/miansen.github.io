@@ -1123,3 +1123,105 @@ bool 查询包含一个 match 查询(查询部分)和一个 range 查询(筛选�
   }
 }
 ```
+
+#### 批量查询
+
+我们想要批量查询 1、2、3 号员工，用 SQL 是这样写的：
+
+```sql
+select * from employee a where a.id in (1,2,3);
+```
+
+在 elasticsearch 中，可以用 **mget** API 查询：
+
+```shell
+curl -X GET 'http://localhost:9200/_mget?pretty=true' -H 'Content-Type:application/json' -d '{"docs":[{"_index":"megacorp","_type":"employee","_id":1},{"_index":"megacorp","_type":"employee","_id":2},{"_index":"megacorp","_type":"employee","_id":3}]}'
+```
+
+请求体是这样的：
+
+```json
+{
+	"docs": [{
+		"_index": "megacorp",
+		"_type": "employee",
+		"_id": 1
+	}, {
+		"_index": "megacorp",
+		"_type": "employee",
+		"_id": 2
+	}, {
+		"_index": "megacorp",
+		"_type": "employee",
+		"_id": 3
+	}]
+}
+```
+
+请求体是一个 docs 数组，数组的每个节点定义一个文档的 _index、_type、_id 元数据。
+
+响应结果：
+
+```json
+{
+  "docs" : [
+    {
+      "_index" : "megacorp",
+      "_type" : "employee",
+      "_id" : "1",
+      "_version" : 2,
+      "_seq_no" : 1,
+      "_primary_term" : 2,
+      "found" : true,
+      "_source" : {
+        "first_name" : "John",
+        "last_name" : "Smith",
+        "age" : 25,
+        "about" : "I love to go rock climbing",
+        "interests" : [
+          "sports",
+          "music"
+        ]
+      }
+    },
+    {
+      "_index" : "megacorp",
+      "_type" : "employee",
+      "_id" : "2",
+      "_version" : 1,
+      "_seq_no" : 2,
+      "_primary_term" : 2,
+      "found" : true,
+      "_source" : {
+        "first_name" : "Jane",
+        "last_name" : "Smith",
+        "age" : 32,
+        "about" : "I like to collect rock albums",
+        "interests" : [
+          "music"
+        ]
+      }
+    },
+    {
+      "_index" : "megacorp",
+      "_type" : "employee",
+      "_id" : "3",
+      "_version" : 1,
+      "_seq_no" : 3,
+      "_primary_term" : 2,
+      "found" : true,
+      "_source" : {
+        "first_name" : "Douglas",
+        "last_name" : "Fir",
+        "age" : 35,
+        "about" : "I like to build cabinets",
+        "interests" : [
+          "forestry"
+        ]
+      }
+    }
+  ]
+}
+```
+
+响应体也包含一个docs数组，每个文档还包含一个响应，它们按照请求定义的顺序排列。
