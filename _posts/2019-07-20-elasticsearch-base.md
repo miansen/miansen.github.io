@@ -26,7 +26,7 @@ Elasticsearch 是一个 nosql 数据库，比传统的关系型数据库厉害�
 
 官方下载地址：[https://www.elastic.co/cn/downloads/elasticsearch](https://www.elastic.co/cn/downloads/elasticsearch)
 
-我这里下载的是最新版本
+我这里下载的是最新版本 7.2.0
 
 ```shell
 wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.2.0-linux-x86_64.tar.gz
@@ -38,28 +38,28 @@ wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.2.0-li
 tar zxvf elasticsearch-7.2.0-linux-x86_64.tar.gz -C
 ```
 
-## 运行
+## 启动
 
-输入以下命令运行 elasticsearch
+输入以下命令启动 elasticsearch
 
 ```shell
 cd elasticsearch-7.2.0
 ./bin/elasticsearch
 ```
 
-如果这时候报错：
+如果报了下面这个错误：
 
 ```
 lasticsearchException[X-Pack is not supported and Machine Learning is not available for [linux-x86]; you can use the other X-Pack features (unsupported) by setting xpack.ml.enabled: false in elasticsearch.yml]
 ```
 
-则编辑 elasticsearch.yml 文件
+可以编辑 config/elasticsearch.yml 文件
 
 ```shell
 vi config/elasticsearch.yml
 ```
 
-在最末尾加入以下配置
+在最末尾加入这个配置
 
 ```yml
 xpack.ml.enabled: false
@@ -92,7 +92,69 @@ xpack.ml.enabled: false
 }
 ```
 
-输出这些信息就说明 elasticsearch 在 9200 端口成功运行了
+输出这些信息就说明 elasticsearch 在 9200 端口成功启动了。
+
+### 外网访问
+
+默认情况下，Elasticsearch 只允许本机访问，如果要开放外网访问，可以修改 config/elasticsearch.yml 文件，需要修改**3个**地方。
+
+（1）将 **node.name: node-1** 的注释放开
+
+（2）将 **network.host** 的注释放开，将它的值改为 0.0.0.0
+
+`network.host: 0.0.0.0`
+
+设成 0.0.0.0 是不限制任何 IP 访问。在生产环境不建议这样设置，一般要限定指定的 IP。
+
+（3）将 **cluster.initial_master_nodes: ["node-1", "node-2"]** 的注释放开
+
+修改完后保存然后重启 Elasticsearch
+
+如果重启 Elasticsearch 报了以下这些错误：
+
+```
+ERROR: [4] bootstrap checks failed
+[1]: max file descriptors [4096] for elasticsearch process is too low, increase to at least [65535]
+[2]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+[3]: JVM is using the client VM [Java HotSpot(TM) Client VM] but should be using a server VM for the best performance
+[4]: system call filters failed to install; check the logs and fix your configuration or disable system call filters at your own risk
+```
+
+你需要以下**4个**步骤来解决这些错误
+
+[1]: 切换到root用户  编辑 /etc/security/limits.conf，在文件中添加如下配置
+
+```
+*                soft    nofile          65536
+*                hard    nofile          131072
+*                soft    nproc           2048
+*                hard    nproc           409
+```
+
+如图所示：
+
+![image](https://miansen.wang/assets/20190728175432.jpg)
+
+[2]: 依然使用root用户 编辑 /etc/sysctl.conf，在最末尾添加如下配置
+
+```
+vm.max_map_count=2621441
+```
+
+保存后执行 sysctl -p /etc/sysctl.conf 使之生效
+
+[3]: 编辑文件 JAVA_HOME\jre\lib\i386\jvm.cfg
+
+将 `-server KNOWN` 与 `-client IF_SERVER_CLASS -server` 的位置对调
+
+[4]: 编辑文件 config/elasticsearch.yml，将 `bootstrap.memory_lock: true` 的注释放开，把它的值改为 false，然后在下一行添加配置 `bootstrap.system_call_filter: false`
+
+```
+bootstrap.memory_lock: false 
+bootstrap.system_call_filter: false
+```
+
+全部修改完后，需要退出当前用户，**重新登录**服务器才生效
 
 ## 基本概念
 
