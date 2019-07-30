@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Elasticsearch7.x 入门
+title: Elasticsearch-入门
 date: 2019-07-20
 categories: Elasticsearch
 tags: Elasticsearch
@@ -10,9 +10,7 @@ author: 龙德
 * content
 {:toc}
 
-Elasticsearch 是一个 nosql 数据库，比传统的关系型数据库厉害的地方在于全文搜索和分析数据。
-
-它底层是开源库 Lucene，Elasticsearch 是 Lucene 的封装，提供了 RESTful 风格的 API，开箱即用。
+Elasticsearch 是一个 nosql 数据库，它底层基于开源库 Lucene，Elasticsearch 是 Lucene 的封装，隐藏了复杂的操作，提供了 RESTful 风格的 API 和 Java 客户端（其它语言的客户端也有），开箱即用。
 
 
 
@@ -158,45 +156,56 @@ bootstrap.system_call_filter: false
 
 ## 基本概念
 
-- **索引（Index）**
+### 索引（Index）
 
 这里的索引是一个名词，索引是 elasticsearch 存储数据的顶层单位，对应的是关系型数据库中的数据库，索引的名字必须是小写。
 
-- **类型（Type）**
+### 类型（Type）
 
 类型对应的是关系型数据库中的表
 
 > 在Elasticsearch 7.0.0或更高版本中创建的索引不再接受 _default_映射。在6.x中创建的索引将继续像以前一样在Elasticsearch 
 > 6.x中运行。在7.0中的API中不推荐使用类型，对索引创建，放置映射，获取映射，放置模板，获取模板和获取字段映射API进行重大更改。
 
-类型会在8.X版本彻底移除
+类型会在8.X版本彻底移除，不过下面的教程我还是保留了类型这个概念。
 
-下面的演示我还是保留了类型这个概念
+### 文档（Document）
 
-- **文档（Document）**
+Index 里面单条的记录称为 Document（文档），文档是一个可被索引的基础信息单元。文档以 JSON 格式来表示，对应的是关系型数据库中的行。
 
-Index 里面单条的记录称为 Document（文档），文档是一个可被索引的基础信息单元。
+### 字段（Field）
 
-文档以 JSON 格式来表示。
+文档的 key，对应的是关系型数据库中的列。
 
-文档对应的是关系型数据库中的行。
+### 映射（Mapping）
 
-- **字段（Field）**
+映射是为每个字段匹配为一种确定的数据类型(string, number, booleans, date等)，可以了解为关系型数据库中的表结构。
 
-文档的 key，对应的是关系型数据库中的列
+我们新建索引的时候可以手动映射字段的类型，如果不手动映射，Elasticsearch 将自动为你映射。
 
-和关系型数据库的比较：
+不过一般情况我们还是手动映射字段的类型，因为有一些 string 类型的字段，我们不想让 Elasticsearch 做分词处理，比如说 "中国" 是一个整体，不能被拆分成 "中" 和 "国"，我们手动映射的时候可以指定 "not_analyzed" 属性，这样 Elasticsearch 就不会将这个字段分词了（后面会具体讲）。再比如 "2018-07-04" 是一个整体，表示某个特定的时间，也不能被分词，我们可以手动映射成 date 类型（date 类型的字段是不能被分词的），所以我们在新建索引时最好手动映射字段的类型。
 
-```
-Relational DB -> Databases -> Tables -> Rows -> Columns
-Elasticsearch -> Indices   -> Types  -> Documents -> Fields
-```
+Elasticsearch 与关系型数据库的对比：
+
+|关系型数据库|Elasticsearch|
+|:------------|:------------|
+|数据库|索引|
+|表|类型|
+|行|文档|
+|列|字段|
+|映射|表结构|
+
+### 分片（shard）
+
+分片是 Elasticsearch 最小级别的"工作单元"，可以理解它是物理上真正存储数据的地方，而索引只是一个逻辑概念。
+
+分片可以分为主分片（primary shard）和复制分片（replica shard），主分片是当前节点存储数据的地方，复制分片是其它节点备份数据的地方。
 
 ## 创建索引
 
 文档的存储单元是索引，好比我们往关系型数据库里插入一条数据之前，得先把数据库创建出来。
 
-所以我们先创建一个索引，elasticsearch 的 API 是基于 TCP/IP 的，所以我们可以发送 PUT 请求创建索引
+由于 Elasticsearch 提供了 RESTful 风格的 API，所以我们可以发送 PUT 请求创建索引。
 
 ```shell
 curl -X PUT 'http://localhost:9200/customer'
@@ -208,7 +217,98 @@ curl -X PUT 'http://localhost:9200/customer'
 {"acknowledged":true,"shards_acknowledged":true,"index":"customer"}
 ```
 
-可以看到成功创建了 customer 索引
+从响应结果中可以看到成功创建了索引，名字是 "customer"。
+
+### 指定分片
+
+创建索引可以指定分片
+
+```shell
+curl -X PUT 'http://localhost:9200/user' -H 'Content-Type:application/json' -d '{"settings":{"index":{"number_of_shards":5,"number_of_replicas":1}}}'
+```
+
+这条请求创建了名字为 "user" 的索引，并指定主分片为5个，复制分片为1个。
+
+可以发起这样的请求获取索引的配置信息：
+
+```shell
+curl localhost:9200/user/_settings?pretty=true
+```
+
+pretty=true 的作用是返回美化后的 JSON 数据
+
+响应结果：
+
+```json
+{
+  "user" : {
+    "settings" : {
+      "index" : {
+        "creation_date" : "1564528179814",
+        "number_of_shards" : "5",
+        "number_of_replicas" : "1",
+        "uuid" : "uJedKPy9RRW9-lr6FyCE_A",
+        "version" : {
+          "created" : "7020099"
+        },
+        "provided_name" : "user"
+      }
+    }
+  }
+}
+```
+
+### 手动映射
+
+创建索引时还可以手动映射字段的类型，好比我们在关系型数据库中创建表时指定表结构一样。
+
+我们创建一个 "图书馆" 索引，该索引下有个 "图书" 类型，然后文档有图书名字（string）、作者（string）、价格（double）、出版日期（date）和简介（string）这5个字段。
+图书名字和简介可以被分词，作者、价格和出版日期不能被分词。
+
+我们可以这样映射：
+
+```shell
+curl -X PUT 'http://localhost:9200/library?pretty=true' -H 'Content-Type:application/json' -d '{"mappings":{"books":{"properties":{"bookName":{"type":"string","index":"analyzed"},"author":{"type":"string","index":"not_analyzed"},"price":{"type":"double","index":"not_analyzed"},"publishDate":{"type":"date","index":"not_analyzed"},"desc":{"type":"string","index": "analyzed"}}}}}'
+```
+
+请求体是这样的：
+
+```json
+{
+	"mappings": {
+		"books": {
+			"properties": {
+				"bookName": {
+					"type": "string",
+					"index": "analyzed"
+				},
+				"author": {
+					"type": "string",
+					"index": "not_analyzed"
+				},
+				"price": {
+					"type": "double",
+					"index": "not_analyzed"
+				},
+				"publishDate": {
+					"type": "date",
+					"index": "not_analyzed"
+				},
+				"desc": {
+					"type": "string",
+					"index": "analyzed"
+				}
+			}
+		}
+	}
+}
+```
+
+可以发起这样的请求获取索引的映射信息：
+
+```shell
+curl localhost:9200/library/_mapping?pretty=true
+```
 
 ## 删除索引
 
