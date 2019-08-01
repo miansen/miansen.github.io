@@ -120,7 +120,7 @@ ERROR: [4] bootstrap checks failed
 
 你需要以下**4个**步骤来解决这些错误
 
-[1]: 切换到root用户  编辑 /etc/security/limits.conf，在文件中添加如下配置
+（1）切换到root用户  编辑 /etc/security/limits.conf，在文件中添加如下配置
 
 ```
 *                soft    nofile          65536
@@ -133,7 +133,7 @@ ERROR: [4] bootstrap checks failed
 
 ![image](https://miansen.wang/assets/20190728175432.jpg)
 
-[2]: 依然使用root用户 编辑 /etc/sysctl.conf，在最末尾添加如下配置
+（2）依然使用root用户 编辑 /etc/sysctl.conf，在最末尾添加如下配置
 
 ```
 vm.max_map_count=2621441
@@ -141,11 +141,11 @@ vm.max_map_count=2621441
 
 保存后执行 sysctl -p /etc/sysctl.conf 使之生效
 
-[3]: 编辑文件 JAVA_HOME\jre\lib\i386\jvm.cfg
+（3）编辑文件 JAVA_HOME\jre\lib\i386\jvm.cfg
 
 将 `-server KNOWN` 与 `-client IF_SERVER_CLASS -server` 的位置对调
 
-[4]: 编辑文件 config/elasticsearch.yml，将 `bootstrap.memory_lock: true` 的注释放开，把它的值改为 false，然后在下一行添加配置 `bootstrap.system_call_filter: false`
+（4）编辑文件 config/elasticsearch.yml，将 `bootstrap.memory_lock: true` 的注释放开，把它的值改为 false，然后在下一行添加配置 `bootstrap.system_call_filter: false`
 
 ```
 bootstrap.memory_lock: false 
@@ -189,11 +189,12 @@ Elasticsearch 与关系型数据库的对比：
 
 |关系型数据库|Elasticsearch|
 |:------------|:------------|
-|数据库|索引|
-|表|类型|
-|行|文档|
-|列|字段|
-|映射|表结构|
+|数据库       |索引         |
+|表           |类型 		|
+|行           |文档         |
+|列           |字段         |
+|映射         |表结构       |
+{: .table.table-bordered }
 
 ### 分片（shard）
 
@@ -262,13 +263,8 @@ pretty=true 的作用是返回美化后的 JSON 数据
 
 创建索引时还可以手动映射字段的类型，好比我们在关系型数据库中创建表时指定表结构一样。
 
-我们创建一个 "图书馆" 索引，该索引下有个 "图书" 类型，然后文档有图书名字（string）、作者（string）、价格（double）、出版日期（date）和简介（string）这5个字段。
-图书名字和简介可以被分词，作者、价格和出版日期不能被分词。
-
-我们可以这样映射：
-
 ```shell
-curl -X PUT 'http://localhost:9200/library?pretty=true' -H 'Content-Type:application/json' -d '{"mappings":{"books":{"properties":{"bookName":{"type":"string","index":"analyzed"},"author":{"type":"string","index":"not_analyzed"},"price":{"type":"double","index":"not_analyzed"},"publishDate":{"type":"date","index":"not_analyzed"},"desc":{"type":"string","index": "analyzed"}}}}}'
+curl -X PUT 'localhost:9200/user01?pretty=true' -H 'Content-Type:application/json' -d '{"mappings":{"properties":{"name":{"type":"text"},"address":{"type":"object","dynamic":"true"}}}}'
 ```
 
 请求体是这样的：
@@ -276,33 +272,20 @@ curl -X PUT 'http://localhost:9200/library?pretty=true' -H 'Content-Type:applica
 ```json
 {
 	"mappings": {
-		"books": {
-			"properties": {
-				"bookName": {
-					"type": "string",
-					"index": "analyzed"
-				},
-				"author": {
-					"type": "string",
-					"index": "not_analyzed"
-				},
-				"price": {
-					"type": "double",
-					"index": "not_analyzed"
-				},
-				"publishDate": {
-					"type": "date",
-					"index": "not_analyzed"
-				},
-				"desc": {
-					"type": "string",
-					"index": "analyzed"
-				}
+		"properties": {
+			"name": {
+				"type": "text"
+			},
+			"address": {
+				"type": "object",
+				"dynamic": "true"
 			}
 		}
 	}
 }
 ```
+
+指定了 "name" 字段的类型是 text，"address" 字段的类型为 object，并且设置 "dynamic" 属性的值为 true，这样可以在插入数据时让 Elasticsearch 为我们动态确定数据的类型。
 
 可以发起这样的请求获取索引的映射信息：
 
