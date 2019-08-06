@@ -81,6 +81,23 @@ public void performRequest() throws Exception {
             ContentType.APPLICATION_JSON));
     // 发送请求，直接返回了响应对象
     Response response = restClient.performRequest(request);
+    // 获取请求信息
+	RequestLine requestLine = response.getRequestLine();
+	// 获取响应主机信息
+	HttpHost host = response.getHost();
+	// 获取响应状态
+	StatusLine statusLine = response.getStatusLine();
+	// 获取响应头
+	Header[] headers = response.getHeaders();
+	// 获取响应体
+	String responseBody = EntityUtils.toString(response.getEntity());
+	log.debug("请求信息: " + requestLine);
+	log.debug("响应主机: " + host);
+	log.debug("响应状态: " + statusLine);
+	for (int i = 0;i < headers.length;i++){
+    	log.debug(headers[i].getName() + ": " + headers[i].getValue());
+	}
+	log.debug("响应体: " + responseBody);
 }
 ```
 
@@ -98,38 +115,57 @@ public void performRequestAsync() throws Exception {
             ContentType.APPLICATION_JSON));
     // 发送异步请求
     restClient.performRequestAsync(request,new ResponseListener(){
-        // 处理返回响应，响应对象作为参数
+        // 请求成功回调
         public void onSuccess(Response response) {
             log.debug(response);
         }
-        //处理失败响应
+        // 请求失败回调
         public void onFailure(Exception e) {
-            log.debug("failure in async scenario");
+            log.debug("failure in async scenario",e);
         }
     });
 }
 ```
 
-### 读取响应
+## 高级REST客户端
 
-同步请求和异步请求都可以拿到响应对象`Response`，我们可以从响应对象中拿到请求信息、主机信息、响应状态和响应体等信息。
+### 引入依赖
+
+```xml
+ <dependencies>
+    <!-- 引入高级客户端 -->
+    <dependency>
+        <groupId>org.elasticsearch.client</groupId>
+        <artifactId>elasticsearch-rest-high-level-client</artifactId>
+        <version>7.2.0</version>
+    </dependency>
+</dependencies>
+```
+
+### 初始化
+
+RestHighLevelClient 实例的初始化需要构建一个REST低级客户端
+
+```
+private RestHighLevelClient client;
+
+@Before
+public void initialize() throws Exception {
+    client = new RestHighLevelClient(RestClient.builder(
+            new HttpHost("192.168.8.8", 9200, "http")));
+}
+```
+
+### 创建索引
 
 ```java
-// 读取请求信息
-RequestLine requestLine = response.getRequestLine();
-// 读取响应主机信息
-HttpHost host = response.getHost();
-// 读取响应状态
-StatusLine statusLine = response.getStatusLine();
-// 读取响应头
-Header[] headers = response.getHeaders();
-// 读取响应体
-String responseBody = EntityUtils.toString(response.getEntity());
-log.debug("请求信息: " + requestLine);
-log.debug("响应主机: " + host);
-log.debug("响应状态: " + statusLine);
-for (int i = 0;i < headers.length;i++){
-    log.debug(headers[i].getName() + ": " + headers[i].getValue());
+@Test
+public void createIndex() throws Exception {
+    CreateIndexRequest request = new CreateIndexRequest("roothub");
+    request.settings(Settings.builder()
+            .put("index.number_of_shards",1)
+            .put("index.number_of_shards", 5));
+    CreateIndexResponse response = client.indices().create(request, RequestOptions.DEFAULT);
+    log.debug(response.toString());
 }
-log.debug("响应体: " + responseBody);
 ```
