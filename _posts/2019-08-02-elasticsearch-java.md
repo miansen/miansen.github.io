@@ -158,13 +158,62 @@ public void initialize() throws Exception {
 
 ### 创建索引
 
+高级客户端提供两个对象创建索引：`IndexRequest`和`CreateIndexRequest`
+
+#### IndexRequest
+
 ```java
+ /**
+ * 创建索引的同时插入文档，有4种方式可以构建文档，后面的文档会覆盖前面的，只能插入最后一条
+ * @throws Exception
+ */
 @Test
-public void createIndex() throws Exception {
+public void indexRequest() throws Exception {
+    // 初始化对象时指定索引名字
+    IndexRequest request = new IndexRequest("roothub01");
+    // 以字符串的形式构建文档，自动转换为json格式
+    String jsonString = "{\"user\":\"zhangsan\",\"date\":\"2018-01-12\",\"message\":\"trying out Elasticsearch\"}";
+    request.source(jsonString, XContentType.JSON);
+    // 以map的形式构建文档，自动转换为json格式
+    Map<String,Object> jsonMap = new HashMap<>();
+    jsonMap.put("user","lisi");
+    jsonMap.put("date","2019-12-12");
+    jsonMap.put("message","trying out oracle");
+    request.source(jsonMap);
+    // 以XContentBuilder对象构建文档，由内置的帮助器生成json
+    XContentBuilder builder = XContentFactory.jsonBuilder();
+    builder.startObject();
+    {
+        builder.field("user","wangwu");
+        builder.field("date","2020-12-21");
+        builder.field("message","trying out Elasticsearch");
+    }
+    builder.endObject();
+    request.source(builder);
+    // 以键值对对象构建文档，它将自动转换为json格式
+    request.source("user","Tom","date",new Date(),"message","trying out mysql");
+    IndexResponse response = client.index(request, RequestOptions.DEFAULT);
+    log.debug(response);
+}
+```
+
+#### CreateIndexRequest
+
+```java
+/**
+ * 创建索引的同时指定分片和插入文档
+ * 插入文档的用法跟上面的一样
+ * @throws Exception
+ */
+@Test
+public void createIndexRequest() throws Exception {
+    // 初始化对象时指定索引名字
     CreateIndexRequest request = new CreateIndexRequest("roothub");
+    // 创建索引的同时可以设置分片
     request.settings(Settings.builder()
             .put("index.number_of_shards",1)
             .put("index.number_of_shards", 5));
+    // 创建索引
     CreateIndexResponse response = client.indices().create(request, RequestOptions.DEFAULT);
     log.debug(response.toString());
 }
