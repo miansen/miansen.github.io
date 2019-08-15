@@ -146,7 +146,7 @@ public void performRequestAsync() throws Exception {
 
 RestHighLevelClient 实例的初始化需要构建一个REST低级客户端
 
-```
+```java
 private RestHighLevelClient client;
 
 @Before
@@ -156,7 +156,7 @@ public void initialize() throws Exception {
 }
 ```
 
-### 创建索引
+### Index API
 
 高级客户端提供两个对象创建索引：`IndexRequest`和`CreateIndexRequest`
 
@@ -192,8 +192,21 @@ public void indexRequest() throws Exception {
     request.source(builder);
     // 以键值对对象构建文档，它将自动转换为json格式
     request.source("user","Tom","date",new Date(),"message","trying out mysql");
+    // 同步执行
     IndexResponse response = client.index(request, RequestOptions.DEFAULT);
     log.debug(response);
+    // 异步执行
+    client.indexAsync(request,null,new ActionListener<IndexResponse>(){
+        @Override
+        public void onResponse(IndexResponse indexResponse) {
+
+        }
+
+        @Override
+        public void onFailure(Exception e) {
+
+        }
+    });
 }
 ```
 
@@ -216,5 +229,15 @@ public void createIndexRequest() throws Exception {
     // 创建索引
     CreateIndexResponse response = client.indices().create(request, RequestOptions.DEFAULT);
     log.debug(response.toString());
+}
+```
+### Get API
+
+```java
+@Test
+public void getRquest() throws Exception {
+    GetRequest getRequest = new GetRequest("roothub01","1");
+    GetResponse getResponse = client.get(getRequest,null);
+    log.debug(getResponse);
 }
 ```
