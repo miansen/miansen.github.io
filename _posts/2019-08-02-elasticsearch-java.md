@@ -241,3 +241,13 @@ public void getRquest() throws Exception {
     log.debug(getResponse);
 }
 ```
+### Delete API
+
+```java
+@Test
+public void getRquest() throws Exception {
+    DeleteRequest deleteRequest = new DeleteRequest("roothub01","1");
+    DeleteResponse deleteResponse = client.delete(deleteRequest,null);
+    log.debug(deleteResponse);
+}
+```
