@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Elasticsearch-入门
+title: Elasticsearch-基础
 date: 2019-07-20
 categories: Elasticsearch
 tags: Elasticsearch
@@ -230,17 +230,19 @@ Elasticsearch 与关系型数据库的对比：
 
 由于 Elasticsearch 提供了 RESTful 风格的 API，所以我们可以发送 PUT 请求创建索引。
 
+最简单的创建索引的请求：
+
 ```shell
-curl -X PUT 'http://localhost:9200/customer'
+curl -X PUT 'http://localhost:9200/user'
 ```
 
 响应结果：
 
 ```json
-{"acknowledged":true,"shards_acknowledged":true,"index":"customer"}
+{"acknowledged":true,"shards_acknowledged":true,"index":"user"}
 ```
 
-从响应结果中可以看到成功创建了索引，名字是 "customer"。
+从响应结果中可以看到成功创建了索引，名字是 "user"。
 
 ### 指定分片
 
@@ -257,62 +259,118 @@ curl -X PUT 'http://localhost:9200/user' -H 'Content-Type:application/json' -d '
 ```shell
 curl localhost:9200/user/_settings?pretty=true
 ```
-
 pretty=true 的作用是返回美化后的 JSON 数据
-
-响应结果：
-
-```json
-{
-  "user" : {
-    "settings" : {
-      "index" : {
-        "creation_date" : "1564528179814",
-        "number_of_shards" : "5",
-        "number_of_replicas" : "1",
-        "uuid" : "uJedKPy9RRW9-lr6FyCE_A",
-        "version" : {
-          "created" : "7020099"
-        },
-        "provided_name" : "user"
-      }
-    }
-  }
-}
-```
 
 ### 手动映射
 
 创建索引时还可以手动映射字段的类型，好比我们在关系型数据库中创建表时指定表结构一样。
 
 ```shell
-curl -X PUT 'localhost:9200/user01?pretty=true' -H 'Content-Type:application/json' -d '{"mappings":{"properties":{"name":{"type":"text"},"address":{"type":"object","dynamic":"true"}}}}'
+curl -X PUT 'localhost:9200/user?pretty=true' -H 'Content-Type:application/json' -d '{"mappings":{"properties":{"first_name":{"type":"string","index":"not_analyzed"},"last_name":{"type":"object","dynamic":"true"},"age":{"type":"integer","index":"not_analyzed"},"address":{"type":"string","index":"analyzed","analyzer":"whitespace"}}}}'
 ```
 
 请求体是这样的：
 
 ```json
 {
-	"mappings": {
-		"properties": {
-			"name": {
-				"type": "text"
-			},
-			"address": {
-				"type": "object",
-				"dynamic": "true"
-			}
-		}
-	}
+  "mappings": {
+    "properties": {
+      "first_name": {
+        "type": "string",
+        "index": "not_analyzed"
+      },
+      "last_name": {
+          "type": "object",
+          "dynamic": "true"
+      },
+      "age": {
+          "type": "integer",
+          "index": "not_analyzed"
+      },
+      "address": {
+        "type": "string",
+        "index": "analyzed",
+        "analyzer": "whitespace"
+      }
+    }
+  }
 }
 ```
 
-指定了 "name" 字段的类型是 text，"address" 字段的类型为 object，并且设置 "dynamic" 属性的值为 true，这样可以在插入数据时让 Elasticsearch 为我们动态确定数据的类型。
+1. 我们指定了 `first_name` 字段的类型是 `string`，并且只索引不分析。因为 `first_name` 我们想作为一个正体来看，指定 `index: not_analyzed` 就可以让 Elasticsearch 不做分词处理。
+
+2. `last_name` 的字段类型是 `object`，设置 `dynamic: true` 属性，这样可以在插入数据时让 Elasticsearch 为我们动态确定数据的类型。
+
+3. `age` 字段的类型为 `integer`。
+
+4. `address` 字段的类型为 `string`，设置 `index: analyzed` 属性，这样可以让 Elasticsearch 分析该字段，做分词处理。设置 `analyzer: whitespace`，指定通过 `whitespace` 分词器分析。
 
 可以发起这样的请求获取索引的映射信息：
 
 ```shell
-curl localhost:9200/library/_mapping?pretty=true
+curl localhost:9200/user/_mapping?pretty=true
+```
+
+**Elasticsearch 可以定义的字段类型**
+
+|Type                        |ES Type        |
+|:---------------------------|:--------------|
+|String, Varchar, Text       |string         |
+|string                      |string     |
+|Long                        |long           |
+|Float                       |float          |
+|Double                      |double         |
+|Boolean                     |boolean        |
+|Date/Datetime               |date           |
+|Bytes/Binary                |binary         |
+{: .table.table-bordered }
+
+**Elasticsearch 可以给字段添加的属性**
+
+|属性                        |描述        |适用类型|
+|:---------------------------|:--------------|:----|
+|store|yes（存储），no（不存储），默认是no|all|
+|index|analyzed（索引且分析），not_analyzed（索引但不分析），no（不索引这个字段，这样就搜不到）|string类型可以设置3种，其它类型只能设置not_analyzed或no|
+|null_value |如果字段是空值，通过它可以设置一个默认值，比如 "null_value": "NA"|all|
+|boost|设置字段的权值，默认是1.0|all|
+|analyzer|可以设置索引和搜索时用的分析器，默认下ES使用的是standard分析器，除此之外，还可以使用whitespace, simple或english这三种内置的分析器|all|
+|index_analyzer|设置一个索引时用的分析器|all|
+|search_analyzer|设置一个搜索时用的分析器|all|
+|include_in_all|默认下ES会为每一个文档定义一个特殊的域_all,它的作用就是每一个字段都将被搜索到，如果不想让某个字段被搜索到，那么就在这字段里定义一个include_in_all=false,默认是true|all|
+|index_name|定义字段的名称，默认值是字段本身的名字|all|
+|norms|norms的作用是根据各种规范化因素去计算权值(非常耗资源)，这样方便查询，在analyzed定义字段里，值true, not_analyzed是false|all|
+{: .table.table-bordered }
+
+## 查询索引
+
+查询所有索引
+
+```shell
+curl -X GET localhost:9200/_all?pretty=true
+``` 
+
+查询单个索引
+
+```shell
+curl -X GET localhost:9200/user?pretty=true
+```
+
+查询多个索引
+
+```shell
+curl -X GET localhost:9200/user01,user02,user03?pretty=true
+```
+
+查询单个索引的配置信息
+
+```shell
+curl -X GET localhost:9200/user/_settings?pretty=true
+```
+
+查询单个索引的映射信息
+
+```shell
+curl -X GET localhost:9200/user/_mapping?pretty=true
 ```
 
 ## 删除索引
