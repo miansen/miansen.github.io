@@ -187,9 +187,103 @@ bootstrap.system_call_filter: false
 
 有两种方式可以替换类型
 
-第一种：每个类型都有一个索引。索引之间是完全独立的，因此索引之间不存在字段类型的冲突。但是这种方式的弊端会造成索引的浪费。
+第一种：每个索引只有一个类型。索引之间是完全独立的，因此索引之间不存在字段类型的冲突。但是这种方式的弊端会造成索引的浪费。
 
 第二种：自定义一个默认的类型`_doc`，该索引下所有文档的类型都是`_doc`，具体的类型可以用字段来确定。
+
+举个例子，最初我们的请求是这样的
+
+```json
+PUT twitter
+{
+  "mappings": {
+    "user": {                                   // 映射的时候指定类型为user
+      "properties": {
+        "name": { "type": "text" },
+        "user_name": { "type": "keyword" },
+        "email": { "type": "keyword" }
+      }
+    },
+    "tweet": {                                  // 映射的时候指定类型为tweet
+      "properties": {
+        "content": { "type": "text" },
+        "user_name": { "type": "keyword" },
+        "tweeted_at": { "type": "date" }
+      }
+    }
+  }
+}
+```
+
+```json
+PUT twitter/tweet/1                             // 新增或更新的时候指定类型为tweet
+{
+  "user_name": "kimchy",
+  "tweeted_at": "2017-10-24T09:00:00Z",
+  "content": "Types are going away"
+}
+```
+
+```json
+GET twitter/tweet/_search                       // 查询的时候指定类型为tweet
+{
+  "query": {
+    "match": {
+      "user_name": "kimchy"
+    }
+  }
+}
+```
+
+现在你可以添加自定义类型字段实现相同的功能
+
+```json
+PUT twitter
+{
+  "mappings": {
+    "_doc": {                                   // 映射的时候类型用 _doc
+      "properties": {
+        "type": { "type": "keyword" },          // 定义一个 type 字段，作用是接管原来的类型的作用
+        "name": { "type": "text" },
+        "user_name": { "type": "keyword" },
+        "email": { "type": "keyword" },
+        "content": { "type": "text" },
+        "tweeted_at": { "type": "date" }
+      }
+    }
+  }
+}
+```
+
+```json
+PUT twitter/_doc/user-kimchy                   // 新增或更新的时候类型用 _doc
+{
+  "type": "user",
+  "name": "Shay Banon",
+  "user_name": "kimchy",
+  "email": "shay@kimchy.com"
+}
+```
+
+```json
+GET twitter/_search
+{
+  "query": {
+    "bool": {
+      "must": {
+        "match": {
+          "user_name": "kimchy"
+        }
+      },
+      "filter": {
+        "match": {
+          "type": "tweet"                       // 查询的时候指定type字段的值为tweet，这样就达到了之前类型的作用
+        }
+      }
+    }
+  }
+}
+```
 
 ### 文档（Document）
 
@@ -266,7 +360,7 @@ pretty=true 的作用是返回美化后的 JSON 数据
 创建索引时还可以手动映射字段的类型，好比我们在关系型数据库中创建表时指定表结构一样。
 
 ```shell
-curl -X PUT 'localhost:9200/user?pretty=true' -H 'Content-Type:application/json' -d '{"mappings":{"properties":{"first_name":{"type":"string","index":"not_analyzed"},"last_name":{"type":"object","dynamic":"true"},"age":{"type":"integer","index":"not_analyzed"},"address":{"type":"string","index":"analyzed","analyzer":"whitespace"}}}}'
+curl -X PUT 'localhost:9200/user?pretty=true' -H 'Content-Type:application/json' -d '{"mappings":{"properties":{"first_name":{"type":"text","index":"true"},"last_name":{"type":"object","dynamic":"true"},"age":{"type":"integer","index":"false"},"address":{"type":"text","index":"true","analyzer":"whitespace"}}}}'
 ```
 
 请求体是这样的：
@@ -276,20 +370,20 @@ curl -X PUT 'localhost:9200/user?pretty=true' -H 'Content-Type:application/json'
   "mappings": {
     "properties": {
       "first_name": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "text",
+        "index": "true"
       },
       "last_name": {
-          "type": "object",
-          "dynamic": "true"
+        "type": "object",
+        "dynamic": "true"
       },
       "age": {
-          "type": "integer",
-          "index": "not_analyzed"
+        "type": "integer",
+        "index": "false"
       },
       "address": {
-        "type": "string",
-        "index": "analyzed",
+        "type": "text",
+        "index": "true",
         "analyzer": "whitespace"
       }
     }
@@ -297,13 +391,7 @@ curl -X PUT 'localhost:9200/user?pretty=true' -H 'Content-Type:application/json'
 }
 ```
 
-1. 我们指定了 `first_name` 字段的类型是 `string`，并且只索引不分析。因为 `first_name` 我们想作为一个正体来看，指定 `index: not_analyzed` 就可以让 Elasticsearch 不做分词处理。
-
-2. `last_name` 的字段类型是 `object`，设置 `dynamic: true` 属性，这样可以在插入数据时让 Elasticsearch 为我们动态确定数据的类型。
-
-3. `age` 字段的类型为 `integer`。
-
-4. `address` 字段的类型为 `string`，设置 `index: analyzed` 属性，这样可以让 Elasticsearch 分析该字段，做分词处理。设置 `analyzer: whitespace`，指定通过 `whitespace` 分词器分析。
+设置 `dynamic: true` 属性，这样可以在插入数据时让 Elasticsearch 为我们动态确定数据的类型。
 
 可以发起这样的请求获取索引的映射信息：
 
@@ -311,34 +399,30 @@ curl -X PUT 'localhost:9200/user?pretty=true' -H 'Content-Type:application/json'
 curl localhost:9200/user/_mapping?pretty=true
 ```
 
-**Elasticsearch 可以定义的字段类型**
+**Elasticsearch 中常用的字段类型**
 
-|Type                        |ES Type        |
-|:---------------------------|:--------------|
-|String, Varchar, Text       |string         |
-|string                      |string     |
-|Long                        |long           |
-|Float                       |float          |
-|Double                      |double         |
-|Boolean                     |boolean        |
-|Date/Datetime               |date           |
-|Bytes/Binary                |binary         |
+|Type                         |ES Type                                                            |
+|:----------------------------|:------------------------------------------------------------------|
+|String                       |text and keyword                                                   |
+|Numeric                      |long, integer, short, byte, double, float, half_float, scaled_float|
+|Date                         |date                                                               |
+|Date nanoseconds             |date_nanos                                                         |
+|Boolean                      |boolean                                                            |
+|Binary                       |binary                                                             |
+|Range                        |integer_range, float_range, long_range, double_range, date_range   |
+|Object                       |object                                                             |
 {: .table.table-bordered }
 
-**Elasticsearch 可以给字段添加的属性**
+**Elasticsearch 中常用的字段参数**
 
-|属性                        |描述        |适用类型|
-|:---------------------------|:--------------|:----|
-|store|yes（存储），no（不存储），默认是no|all|
-|index|analyzed（索引且分析），not_analyzed（索引但不分析），no（不索引这个字段，这样就搜不到）|string类型可以设置3种，其它类型只能设置not_analyzed或no|
-|null_value |如果字段是空值，通过它可以设置一个默认值，比如 "null_value": "NA"|all|
-|boost|设置字段的权值，默认是1.0|all|
-|analyzer|可以设置索引和搜索时用的分析器，默认下ES使用的是standard分析器，除此之外，还可以使用whitespace, simple或english这三种内置的分析器|all|
-|index_analyzer|设置一个索引时用的分析器|all|
-|search_analyzer|设置一个搜索时用的分析器|all|
-|include_in_all|默认下ES会为每一个文档定义一个特殊的域_all,它的作用就是每一个字段都将被搜索到，如果不想让某个字段被搜索到，那么就在这字段里定义一个include_in_all=false,默认是true|all|
-|index_name|定义字段的名称，默认值是字段本身的名字|all|
-|norms|norms的作用是根据各种规范化因素去计算权值(非常耗资源)，这样方便查询，在analyzed定义字段里，值true, not_analyzed是false|all|
+|属性                        |描述           |适用类型          |
+|:---------------------------|:--------------|:-----------------|
+|store            |该参数控制字段是否被存储，接受的值为 `true` 或者 `flase`，默认是 `false`。默认情况下，我们通过字段查询，但是不存储原始字段值，如果设置 `"title": {"type": "text","store": true }` 则会将 `"title"` 这个原始字段值存储|all|
+|index            |该参数控制字段是否被索引，接受的值为 `true` 或者 `flase`，默认是 `true`，设置为 `false` 则该字段不可查询|all|
+|null_value |当字段的值为 null或者空数组时，该字段不能被索引和搜索。通过该参数可以设置一个默认值，比如 `"null_value": "NULL"`|all|
+|boost            |设置字段的权值，默认是1.0|all|
+|analyzer         |可以设置索引和搜索时用的分析器，默认下ES使用的是standard分析器，除此之外，还可以使用whitespace, simple或english这三种内置的分析器|all|
+|norms            |norms的作用是根据各种规范化因素去计算权值(非常耗资源)，这样方便查询，在analyzed定义字段里，值true, not_analyzed是false|all|
 {: .table.table-bordered }
 
 ## 查询索引
