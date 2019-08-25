@@ -213,23 +213,94 @@ public void indexRequest() throws Exception {
 #### CreateIndexRequest
 
 ```java
-/**
- * 创建索引的同时指定分片和插入文档
- * 插入文档的用法跟上面的一样
- * @throws Exception
- */
 @Test
-public void createIndexRequest() throws Exception {
-    // 初始化对象时指定索引名字
-    CreateIndexRequest request = new CreateIndexRequest("roothub");
-    // 创建索引的同时可以设置分片
-    request.settings(Settings.builder()
-            .put("index.number_of_shards",1)
-            .put("index.number_of_shards", 5));
-    // 创建索引
-    CreateIndexResponse response = client.indices().create(request, RequestOptions.DEFAULT);
-    log.debug(response.toString());
-}
+    public void createIndexRequest() throws Exception {
+        // 初始化对象时指定索引名字
+        CreateIndexRequest request = new CreateIndexRequest("roothub");
+        // 创建索引的同时可以设置分片
+        request.settings(Settings.builder()
+                .put("index.number_of_shards",1)
+                .put("index.number_of_shards", 5));
+
+        // 创建索引的同时还可以指定映射，一共有3种方式
+
+        // 1.以字符串的形式构建映射，自动转换为json格式
+        request.mapping(
+                "{" +
+                        "\"properties\":{" +
+                            "\"first_name\":{" +
+                                "\"type\":\"text\"," +
+                                "\"index\":\"true\"" +
+                                "}," +
+                            "\"last_name\":{" +
+                                "\"type\":\"object\"," +
+                                "\"dynamic\":\"true\"" +
+                                "}," +
+                            "\"age\":{" +
+                                "\"type\":\"integer\"," +
+                                "\"index\":\"false\"" +
+                                "}," +
+                            "\"address\":{" +
+                                "\"type\":\"text\"," +
+                                "\"index\":\"true\"," +
+                                "\"analyzer\":\"whitespace\"" +
+                                "}" +
+                            "}" +
+                        "}",
+                        XContentType.JSON);
+
+        // 2.以map的形式构建映射，自动转换为json格式
+        Map<String,Object> firstName = new HashMap<>();
+        Map<String,Object> lastName = new HashMap<>();
+        Map<String,Object> age = new HashMap<>();
+        Map<String,Object> address = new HashMap<>();
+        Map<String,Object> properties = new HashMap<>();
+        Map<String, Object> mapping = new HashMap<>();
+        firstName .put("type","text");
+        firstName .put("index","true");
+        lastName.put("type","object");
+        lastName.put("dynamic","true");
+        age.put("type","integer");
+        age.put("index","false");
+        address.put("type","text");
+        address.put("index","true");
+        address.put("analyzer","whitespace");
+        properties.put("first_name",firstName);
+        properties.put("last_name",lastName);
+        properties.put("age",age);
+        properties.put("address",address);
+        mapping.put("properties",properties);
+        request.mapping(mapping);
+
+        // 3.以XContentBuilder对象构建映射，由内置的帮助器生成json
+        XContentBuilder builder = XContentFactory.jsonBuilder();
+        builder.startObject()
+                  .startObject("properties")
+                     .startObject("first_name")
+                        .field("type","text")
+                        .field("index","true")
+                     .endObject()
+                     .startObject("last_name")
+                        .field("type","object")
+                        .field("dynamic","true")
+                     .endObject()
+                     .startObject("age")
+                        .field("type","integer")
+                        .field("index","false")
+                     .endObject()
+                     .startObject("address")
+                        .field("type","text")
+                        .field("index","analyzed")
+                        .field("analyzer","whitespace")
+                     .endObject()
+                  .endObject()
+                .endObject();
+
+        // 创建索引
+        CreateIndexResponse response = client.indices().create(request, RequestOptions.DEFAULT);
+
+        log.debug(response.toString());
+    }
 ```
 ### Get API
 
@@ -251,3 +322,9 @@ public void getRquest() throws Exception {
     log.debug(deleteResponse);
 }
 ```
+
+剩下的API用到的时候再去翻文档吧，未完待续。。。
+
+## 参考
+
+[https://www.elastic.co/guide/en/elasticsearch/client/java-rest/current/java-rest-high-create-index.html](https://www.elastic.co/guide/en/elasticsearch/client/java-rest/current/java-rest-high-create-index.html)

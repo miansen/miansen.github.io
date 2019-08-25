@@ -21,6 +21,7 @@ Elasticsearch 是一个 nosql 数据库，它底层基于开源库 Lucene，Elas
 
 - CentOS-6.5-i386 32位
 - JDK 1.8
+- Elasticsearch 7.2.0
 
 官方下载地址：[https://www.elastic.co/cn/downloads/elasticsearch](https://www.elastic.co/cn/downloads/elasticsearch)
 
