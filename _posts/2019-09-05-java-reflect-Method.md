@@ -5,11 +5,13 @@ date: 2019-09-05
 categories: Java
 tags: 反射 Method
 author: 龙德
-excerpt: 一个简简单单的 User 类 public class User{private String name;private int age;public User() {} public User(String name, int age) {System.out.println("name: " + this.name + ", age: " + this.age + ", sex: " + sex + ", addr: " + addr);}}
 ---
 
 * content
 {:toc}
+
+
+
 
 **一个简简单单的 User 类**
 
