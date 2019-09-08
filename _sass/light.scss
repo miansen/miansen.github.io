@@ -11,8 +11,8 @@
 }
 
 body {
-  font-size: 16px;
-  background-color: #ddd;
+  // font-size: 16px;
+  // background-color: #ddd;
   //font-family: Zpix;
 }
 
@@ -91,20 +91,22 @@ ol {
 
 a {
   text-decoration: none;
-  color: #2288bb;
+  color: #333;
 
   &:hover {
     text-decoration: underline;
-    color: #33aaff;
+    color: #2288bb;
   }
 
   &:visited {
     text-decoration: none;
-    // color: #2288bb;
+    // color: #333;
   }
 }
 
 .excerpt {
+  font-size: 12px;
+  color: #999;
   a {
     text-decoration: underline;
   }
