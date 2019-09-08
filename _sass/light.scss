@@ -85,7 +85,7 @@ ol {
   }
 
   a {
-    text-decoration: underline;
+    text-decoration: none;
   }
 }
 
@@ -202,7 +202,7 @@ footer {
   padding: 10px 0;
 
   a {
-    text-decoration: underline;
+    text-decoration: none;
   }
 
   .contact {
@@ -248,7 +248,7 @@ footer {
 }
 
 .paginate {
-  font-size: 16px;
+  float: right;
 }
 
 .back-to-top {
