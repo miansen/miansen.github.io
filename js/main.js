@@ -1,5 +1,10 @@
 $(function () {
 
+  $(".panel .excerpt").each(function(index,item){
+    var newExcerpt = $(this).text().substring(0,250).replace(/[\r\n]/g,"") + "...";
+    $(this).text(newExcerpt);
+  });
+
   // 替换代码块中 p 标签的 class
   $(".highlighter-rouge span.err").addClass("p").removeClass("err");
 

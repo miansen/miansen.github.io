@@ -9,8 +9,8 @@
 }
 
 body {
-  font-size: 16px;
-  background-color: #ddd;
+  // font-size: 16px;
+  // background-color: #ddd;
 }
 
 // Georgia
@@ -48,18 +48,20 @@ a {
 
 a {
   text-decoration:none;
-  color: #2288bb;
+  color: #333;
   &:hover {
     text-decoration:underline;
-    color: #33aaff;
+    color: #2288bb;
   }
   &:visited {
     text-decoration:none;
-    color: #2288bb;
+    color: #333;
   }
 }
 
 .excerpt {
+  color: #777;
+  font-size: 14px;
   a {
     text-decoration: underline;
   }
