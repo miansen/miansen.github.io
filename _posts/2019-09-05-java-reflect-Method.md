@@ -10,9 +10,6 @@ author: 龙德
 * content
 {:toc}
 
-
-
-
 **一个简简单单的 User 类**
 
 ```java
@@ -129,3 +126,13 @@ final 方法
 **结论**
 
 终于明白 JDK 的动态代理为什么能执行原对象的方法了，原来是将 Method 对象和方法参数 args 传进了 InvocationHandler 接口的 invoke(Object proxy, Method method, Object[] args) 方法里，然后通过调用 method.invoke(原对象实例，args) 方法就可以达到调用原对象方法的效果。
+
+```java
+public class ObjInterceptor implements InvocationHandler {
+
+		@Override
+		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+			return method.invoke(obj, args);
+		}
+	}
+```
