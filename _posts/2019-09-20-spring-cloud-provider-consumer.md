@@ -22,7 +22,7 @@ author: 龙德
 
 - SpringCloud 版本：Greenwich.RELEASE
 
-1. 首先创建一个 Maven 工程作为父 POM，所有的子工程都继承这个父工程，用以管理子工程的版本依赖。
+（1）首先创建一个 Maven 工程作为父 POM，所有的子工程都继承这个父工程，用以管理子工程的版本依赖。
 
 父工程的 `pom.xml` 如下：
 
@@ -77,7 +77,7 @@ author: 龙德
 
 父工程只留一个 `pom.xml` 文件就可以了，其他的文件目录都可以不要
 
-2. 然后在父工程下新建一个服务提供者工程 spring-cloud-provider
+（2）然后在父工程下新建一个服务提供者工程 spring-cloud-provider
 
 `pom.xml` 如下：
 
@@ -107,7 +107,7 @@ author: 龙德
 </project>
 ```
 
-3. 在 `resources` 文件夹下新建 `application.properties`
+（3）在 `resources` 文件夹下新建 `application.properties`
 
 添加如下内容：
 
@@ -118,7 +118,7 @@ spring.application.name=spring-cloud-provider
 server.port=8078
 ```
 
-4. 在启动类里简单的输出一些信息
+（4）在启动类里简单的输出一些信息
 
 ```java
 @RestController
@@ -132,14 +132,14 @@ public class ProviderApplication {
 	@Value("${server.port}")
     private String port;
 	
-	@GetMapping("/")
+	@GetMapping("/info")
 	public String info() {
 		return "spring-cloud-provider from port: " + port;
 	}
 }
 ```
 
-5. 在父工程下新建一个服务消费者工程 spring-cloud-consumer
+（5）在父工程下新建一个服务消费者工程 spring-cloud-consumer
 
 ```xml
 <?xml version="1.0"?>
@@ -167,7 +167,7 @@ public class ProviderApplication {
 </project>
 ```
 
-6. 在 `resources` 文件夹下新建 `application.properties`
+（6）在 `resources` 文件夹下新建 `application.properties`
 
 添加如下内容：
 
@@ -178,7 +178,7 @@ spring.application.name=spring-cloud-consumer
 server.port=8079
 ```
 
-7. 在启动类里调用服务提供者
+（7）在服务消费者的启动类里调用服务提供者
 
 ```java
 @RestController
@@ -189,22 +189,22 @@ public class ConsumerApplication {
 		SpringApplication.run(ConsumerApplication.class, args);
 	}
 	
-	@GetMapping("/")
+	@GetMapping("/info")
 	public String info() {
-		return new RestTemplate().getForObject("http://localhost:8078", String.class);
+		return new RestTemplate().getForObject("http://localhost:8078/info", String.class);
 	}
 
 }
 ```
 
-它的 info() 方法没有自己实现，而是调用的服务提供者的 info() 方法
+服务消费者的 info() 方法没有自己实现，而是调用的服务提供者的 info() 方法。
 
-8. 创建好的整体工程结构如下
+（8）创建好的整体工程结构如下
 
 ![image](https://miansen.wang/assets/20190920171238.png)
 
-9. 依次启动服务提供者和服务消费者
+（9）依次启动服务提供者和服务消费者
 
-10. 访问 `http://localhost:8079`，同样也能取得服务提供者的信息
+（10）访问服务消费者的地址 `http://localhost:8079/info`，同样也能取得服务提供者的信息。
 
-这样一个简单的 `SpringCloud` 项目的服务提供者和消费者就已经完成了。
+这样一个简单的伪 `SpringCloud` 项目的服务提供者和消费者就已经完成了。
