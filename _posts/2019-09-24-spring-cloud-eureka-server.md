@@ -10,7 +10,7 @@ author: 龙德
 * content
 {:toc}
 
-在上一篇 [SpringCloud-服务提供者与服务消费者](https://miansen.wang/2019/09/20/spring-cloud-provider-consumer) 中，服务提供者和服务消费者其实是两个独立的应用，服务调用的地址是以硬编码在代码中的。我们需要一个注册中心来调度各个服务，并且监控各个服务的健康状态。
+在上一篇 [SpringCloud-服务提供者与服务消费者](https://miansen.wang/2019/09/20/spring-cloud-provider-consumer) 中，服务提供者和服务消费者其实是两个独立的应用，并且服务调用的地址是硬编码在代码中的。我们需要一个注册中心来调度各个服务，并且监控各个服务的健康状态。
 
 ## 创建服务注册中心
 
@@ -172,7 +172,25 @@ eureka.client.register-with-eureka=true
 eureka.client.service-url.defaultZone=http://localhost:8080/eureka
 ```
 
-服务消费者的启动类添加 `@EnableEurekaClient` 注解，并且将 `http://localhost:8078/info` 替换成 `http://spring-cloud-provider/info`
+服务消费者的启动类添加 `@EnableEurekaClient` 注解，并且将之前硬编码的服务提供者的地址 `http://localhost:8078/info` 替换成 `http://spring-cloud-provider/info`
+
+```java
+@EnableEurekaClient
+@RestController
+@SpringBootApplication
+public class ConsumerApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ConsumerApplication.class, args);
+	}
+	
+	@GetMapping("/info")
+	public String info() {
+		return new RestTemplate().getForObject("http://spring-cloud-provider/info", String.class);
+	}
+
+}
+```
 
 然后启动服务消费者，刷新 [http://localhost:8080](http://localhost:8080)，可以看到服务消费者也注册到 `Eureka` 了。
 
