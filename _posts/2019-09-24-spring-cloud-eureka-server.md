@@ -14,7 +14,7 @@ author: 龙德
 
 ## 创建服务注册中心
 
-在父工程下新建一个子工程 `spring-cloud-eureka-server`
+（1）在父工程下新建一个子工程 `spring-cloud-eureka-server`
 
 `pom.xml` 文件如下：
 
@@ -53,7 +53,7 @@ author: 龙德
 </project>
 ```
 
-在 `resources` 文件夹下新建 `application.properties`
+（2）在 `resources` 文件夹下新建 `application.properties`
 
 添加如下内容：
 
@@ -72,7 +72,7 @@ eureka.client.register-with-eureka=false
 eureka.server.enable-self-preservation=false
 ```
 
-启动类添加 `@EnableEurekaServer` 注解
+（3）启动类添加 `@EnableEurekaServer` 注解
 
 ```java
 @EnableEurekaServer
@@ -86,7 +86,7 @@ public class EurekaServerApplication {
 }
 ```
 
-然后启动工程，访问 [http://localhost:8080](http://localhost:8080)
+（4）启动工程，访问 [http://localhost:8080](http://localhost:8080)
 
 界面如下：
 
@@ -96,7 +96,7 @@ public class EurekaServerApplication {
 
 ## 创建服务提供者
 
-在原先的 `spring-cloud-provider` 工程中添加 `Eureka` 依赖
+（1）在原先的 `spring-cloud-provider` 工程中添加 `Eureka` 依赖
 
 ```xml
 <!-- 引入 eureka server 依赖-->
@@ -106,7 +106,7 @@ public class EurekaServerApplication {
 </dependency>
 ```
 
-修改 `application.properties` 文件，添加以下配置：
+（2）修改 `application.properties` 文件，添加以下配置：
 
 ```
 #指定服务名称
@@ -121,7 +121,7 @@ eureka.client.register-with-eureka=true
 eureka.client.service-url.defaultZone=http://localhost:8080/eureka
 ```
 
-启动类添加 `@EnableEurekaClient` 注解，然后启动此工程。
+（3）启动类添加 `@EnableEurekaClient` 注解，然后启动此工程。
 
 刷新 [http://localhost:8080](http://localhost:8080)，可以看到 `spring-cloud-provider` 服务注册到 `Eureka` 了。
 
@@ -135,9 +135,9 @@ eureka.client.service-url.defaultZone=http://localhost:8080/eureka
 
 ![image](https://miansen.wang/assets/20190924173500.png)
 
-同理我们也可以注册多个服务
+同理我们也可以注册多个服务。
 
-同样修改 `spring-cloud-provider` 工程的 `application.properties` 文件
+修改 `spring-cloud-provider` 工程的 `application.properties` 文件，
 
 将服务名称改为 `spring-cloud-provider-2`，端口号改为 `8082`，然后再启动。
 
@@ -147,7 +147,7 @@ eureka.client.service-url.defaultZone=http://localhost:8080/eureka
 
 ## 创建服务消费者
 
-在原先的 `spring-cloud-consumer` 工程中添加 `Eureka` 依赖
+（1）在原先的 `spring-cloud-consumer` 工程中添加 `Eureka` 依赖
 
 ```xml
 <!-- 引入 eureka server 依赖-->
@@ -157,7 +157,7 @@ eureka.client.service-url.defaultZone=http://localhost:8080/eureka
 </dependency>
 ```
 
-修改 `application.properties` 文件，添加以下配置：
+（2）修改 `application.properties` 文件，添加以下配置：
 
 ```
 #指定服务名称
@@ -172,7 +172,11 @@ eureka.client.register-with-eureka=true
 eureka.client.service-url.defaultZone=http://localhost:8080/eureka
 ```
 
-服务消费者的启动类添加 `@EnableEurekaClient` 注解，并且将之前硬编码的服务提供者的地址 `http://localhost:8078/info` 替换成 `http://spring-cloud-provider/info`
+（3）修改启动类
+
+服务消费者的启动类添加 `@EnableEurekaClient` 注解，并且将 `"http://localhost:8078/users/" + name` 替换成 `"http://spring-cloud-provider/users/" + name`
+
+在 `Eureka` 中，一个工程的 `spring.application.name` 的属性值对应着一个服务的 ID，`Eureka` 可以根据这个 ID 去调度服务，我们无需关心具体的 IP + 端口，只要知道服务提供者的名字就可以调用了。
 
 ```java
 @EnableEurekaClient
@@ -184,18 +188,18 @@ public class ConsumerApplication {
 		SpringApplication.run(ConsumerApplication.class, args);
 	}
 	
-	@GetMapping("/info")
-	public String info() {
-		return new RestTemplate().getForObject("http://spring-cloud-provider/info", String.class);
+	@GetMapping("/users/{name}")
+	public String getUser(@PathVariable("name") String name) {
+		return new RestTemplate().getForObject("http://spring-cloud-provider/users/" + name, String.class);
 	}
 
 }
 ```
 
-然后启动服务消费者，刷新 [http://localhost:8080](http://localhost:8080)，可以看到服务消费者也注册到 `Eureka` 了。
+（4）启动服务消费者，刷新 [http://localhost:8080](http://localhost:8080)，可以看到服务消费者也注册到 `Eureka` 了。
 
 ![image](https://miansen.wang/assets/20190924181713.png)
 
-在 `Eureka` 中，一个工程的 `spring.application.name` 的属性值对应着一个服务的 ID，`Eureka` 可以根据这个 ID 去调度服务，我们无需关心具体的 IP + 端口，只要知道服务提供者的名字就可以调用了。
+不过这时候访问服务消费者 [http://localhost:8079/users/zhangsan](http://localhost:8079/users/zhangsan) 会报错，因为需要开启 `Eureka` 的负载均衡后才能调用服务提供者，下一篇会具体讲 Spring Cloud 服务之间的调用方式。
 
-不过这时候访问服务消费者的地址 [http://localhost:8079/info](http://localhost:8079/info) 会报错，因为需要开启负载均衡后才能调用服务提供者，下一篇会具体讲 Spring Cloud 的调用方式。
+源码下载[https://github.com/miansen/SpringCloud-Learn](https://github.com/miansen/SpringCloud-Learn)

@@ -14,7 +14,7 @@ author: 龙德
 
 - JDK 版本：1.8
 
-- IDEA：Eclipse
+- IDA：Eclipse
 
 - Maven 版本：3.5.0
 
@@ -22,7 +22,7 @@ author: 龙德
 
 - SpringCloud 版本：Greenwich.RELEASE
 
-（1）首先创建一个 Maven 工程作为父 POM，所有的子工程都继承这个父工程，用以管理子工程的版本依赖。
+（1）首先创建一个 Maven 工程作为父工程，所有的子工程都继承这个父工程，用以管理子工程的版本依赖。
 
 父工程的 `pom.xml` 如下：
 
@@ -132,9 +132,9 @@ public class ProviderApplication {
 	@Value("${server.port}")
     private String port;
 	
-	@GetMapping("/info")
-	public String info() {
-		return "spring-cloud-provider from port: " + port;
+	@GetMapping("/users/{name}")
+	public String getUser(@PathVariable("name") String name) {
+		return "user name: "+ name +", server name: spring-cloud-provider, port: " + port;
 	}
 }
 ```
@@ -189,15 +189,15 @@ public class ConsumerApplication {
 		SpringApplication.run(ConsumerApplication.class, args);
 	}
 	
-	@GetMapping("/info")
-	public String info() {
-		return new RestTemplate().getForObject("http://localhost:8078/info", String.class);
+	@GetMapping("/users/{name}")
+	public String getUser(@PathVariable("name") String name) {
+		return new RestTemplate().getForObject("http://localhost:8078/users/" + name, String.class);
 	}
 
 }
 ```
 
-服务消费者的 info() 方法没有自己实现，而是调用的服务提供者的 info() 方法。
+服务消费者的 getUser() 方法没有自己实现，而是调用的服务提供者的 getUser() 方法。
 
 （8）创建好的整体工程结构如下
 
@@ -205,6 +205,10 @@ public class ConsumerApplication {
 
 （9）依次启动服务提供者和服务消费者
 
-（10）访问服务消费者的地址 `http://localhost:8079/info`，同样也能取得服务提供者的信息。
+（10）访问服务消费者的地址 `http://localhost:8079/users/zhangsan`，同样也能取得服务提供者的信息。
+
+![image](https://miansen.wang/assets/20190926141752.png)
 
 这样一个简单的伪 `SpringCloud` 项目的服务提供者和消费者就已经完成了。
+
+源码下载[https://github.com/miansen/SpringCloud-Learn](https://github.com/miansen/SpringCloud-Learn)
