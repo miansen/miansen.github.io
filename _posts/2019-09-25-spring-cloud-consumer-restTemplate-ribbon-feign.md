@@ -277,4 +277,4 @@ public interface UserFeignClient {
 }
 ```
 
-源码下载[https://github.com/miansen/SpringCloud-Learn](https://github.com/miansen/SpringCloud-Learn)
+源码下载：[https://github.com/miansen/SpringCloud-Learn](https://github.com/miansen/SpringCloud-Learn)

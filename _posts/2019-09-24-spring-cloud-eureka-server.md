@@ -202,4 +202,4 @@ public class ConsumerApplication {
 
 不过这时候访问服务消费者 [http://localhost:8079/users/zhangsan](http://localhost:8079/users/zhangsan) 会报错，因为需要开启 `Eureka` 的负载均衡后才能调用服务提供者，下一篇会具体讲 Spring Cloud 服务之间的调用方式。
 
-源码下载[https://github.com/miansen/SpringCloud-Learn](https://github.com/miansen/SpringCloud-Learn)
+源码下载：[https://github.com/miansen/SpringCloud-Learn](https://github.com/miansen/SpringCloud-Learn)

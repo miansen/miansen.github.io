@@ -211,4 +211,4 @@ public class ConsumerApplication {
 
 这样一个简单的伪 `SpringCloud` 项目的服务提供者和消费者就已经完成了。
 
-源码下载[https://github.com/miansen/SpringCloud-Learn](https://github.com/miansen/SpringCloud-Learn)
+源码下载：[https://github.com/miansen/SpringCloud-Learn](https://github.com/miansen/SpringCloud-Learn)
