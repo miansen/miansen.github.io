@@ -81,7 +81,7 @@ public class ConsumerRibbonApplication {
 
 还有一个 `spring-cloud-consumer-ribbon` 服务，端口是 `8077`。
 
-访问 `spring-cloud-consumer-ribbon` 服务 `http://localhost:8077/users/zhangsan `，每次访问都会轮流的调用不同端口的消费提供者。
+访问 `spring-cloud-consumer-ribbon` 服务 `http://localhost:8077/users/zhangsan `，每次访问都会轮流的调用不同端口的消费提供者（注意看端口的变化）。
 
 ![image](https://miansen.wang/assets/ribbon.gif)
 
@@ -147,7 +147,7 @@ public class MyRule extends AbstractLoadBalancerRule {
 先看一下 SpringCloud 官网对它的定义
 
 > Feign 是一个声明式的 Web 服务客户端。它支持 Feign 本身的注解、JAX-RS 注解以及 SpringMVC 的注解。
-> SpringCloud 集成 Ribbon 和 Eureka 以在使用 Feign 时提供负载均衡的http客户端。
+> SpringCloud 集成 Ribbon 和 Eureka 以在使用 Feign 时提供负载均衡的 http 客户端。
 
 （1）新建一个 `spring-cloud-consumer-feign` 工程
 
@@ -205,9 +205,7 @@ public interface UserFeignClient {
 
 注解 `@FeignClient(name = "spring-cloud-provider")` 指定了调用哪个服务。
 
-`@GetMapping` 就是 SpringMVC 的注解了。
-
-（5）新建一个 `controller` 包，新建一个 `UserController` 类
+（5）新建一个 `controller` 包，新建一个 `UserController` 类。
 
 ```java
 @RestController
@@ -223,7 +221,7 @@ public class UserController {
 }
 ```
 
-项目结构如下
+项目结构如下：
 
 ![image](https://miansen.wang/assets/20190926153306.png)
 
@@ -235,7 +233,7 @@ public class UserController {
 
 修改 Feign 的默认配置也存在包扫描的问题，跟修改 Ribbon 的策略一样，我们把包放在 SpringBoot 扫描不到的地方。
 
-（1）新建一个 `config` 包，新建类 `FeignContract`
+（1）新建一个 `config` 包，新建类 `FeignContract`。
 
 ```java
 @Configuration
@@ -248,13 +246,15 @@ public class FeignContractConfig {
 }
 ```
 
-项目结构如下
+项目结构如下：
 
 ![image](https://miansen.wang/assets/20190926155113.png)
 
 （2）在 `UserFeignClient` 类中的注解 `@FeignClient` 指定 `configuration` 参数。
 
-`@FeignClient(name = "spring-cloud-provider", configuration = FeignContractConfig.class)`
+```java
+@FeignClient(name = "spring-cloud-provider", configuration = FeignContractConfig.class)
+```
 
 我们在 `FeignContractConfig` 类中修改了 `Feign` 的 `Contract` ，`Contract` 是一个契约的概念。 `Feign` 默认的契约是 `SpringMVC`，所以我们在 `UserFeignClient` 类中使用的是 `SpringMVC` 的注解。现在 `Contract.Default()` 使用的契约是 `Feign `自己的，也就是说我们要把 `SpringMVC` 的注解修改为 `Feign` 的注解，否则项目启动不了。
 
