@@ -2,7 +2,7 @@
 layout: default
 ---
 <div class="row">
-  <div class="col-md-9">
+  <div class="col-md-12">
     <div class="panel">
       <div class="panel-body">
         <h2>{{ page.title }}</h2>
@@ -26,7 +26,7 @@ layout: default
         <div class="post-content">
           {{ page.content }}
           <p>
-            原文链接: <a href="{{ page.url | prepend: site.url }}">{{ page.url | prepend: site.url }}</a>
+            原文链接：<a href="{{ page.url | prepend: site.url }}">{{ page.url | prepend: site.url }}</a>
           </p>
         </div>
         <div class="prev-next">
@@ -45,7 +45,7 @@ layout: default
     </div>
     {% include comments.html %}
   </div>
-  <div class="col-md-3 hidden-sm hidden-xs">
+  <div class="col-md-3 hidden-sm hidden-xs" style="display: none;">
     <div class="post-right">
       <div class="panel panel-default">
         <div class="panel-heading"><i class="fa fa-list-ul"></i> 文章目录</div>
