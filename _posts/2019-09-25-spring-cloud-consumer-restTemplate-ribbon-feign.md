@@ -89,9 +89,13 @@ public class ConsumerRibbonApplication {
 
 从上面例子我们知道 `Ribbon` 默认的负载均衡策略是采用轮训的方式，我们也可以自定义负载均衡的策略。
 
-（1）在启动类的上级新建包 `config`，然后新建 `LoadBalancedConfig` 类。
-
 注意避免 SpringBoot 的包扫描，因为自定义的策略必须在 Eureka 的策略实例化以后再实例化才会生效。
+
+有两种方式
+
+#### 第一种
+
+在启动类的上级新建包 `config`，然后新建 `LoadBalancedConfig` 类。
 
 ```java
 @Configuration
@@ -108,7 +112,7 @@ public class LoadBalancedConfig {
 }
 ```
 
-MyRule 类如下：
+MyRule 类：
 
 ```java
 public class MyRule extends AbstractLoadBalancerRule {
@@ -128,17 +132,54 @@ public class MyRule extends AbstractLoadBalancerRule {
 }
 ```
 
-项目结构如下
-
-![image](https://miansen.wang/assets/20190926151929.png)
-
-（2）在启动类上添加注解 `@RibbonClient`，指定 `spring-cloud-provider` 服务使用 `LoadBalancedConfig` 提供的规则。
+在启动类上添加注解 `@RibbonClient`，指定 `spring-cloud-provider` 服务使用 `LoadBalancedConfig` 提供的规则。
 
 ```java
 @RibbonClient(name = "spring-cloud-provider", configuration = org.spring.cloud.config.LoadBalancedConfig.class)
 ```
 
-（3）然后重新启动 `spring-cloud-consumer-ribbon` 服务，访问 `http://localhost:8077/users/zhangsan`，可以看到每次访问都是同一个端口。当然这个只是测试用例，现实中并不会采用这种负载均衡的策略。
+![image](https://miansen.wang/assets/20190926151929.png)
+
+#### 第二种
+
+包依旧跟启动类同级，新建一个注解
+
+```java
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+public @interface ExcludeFromComponentScan {
+
+}
+```
+
+LoadBalancedConfig 使用上面定义的注解
+
+```java
+@ExcludeFromComponentScan
+@Configuration
+public class LoadBalancedConfig {
+```
+
+启动类指定包扫描忽略使用 @ExcludeFromComponentScan 注解的类，然后注册规则
+
+```java
+// 忽略使用 @ExcludeFromComponentScan 注解的类
+@ComponentScan(excludeFilters = {@ComponentScan.Filter(type = FilterType.ANNOTATION, value = ExcludeFromComponentScan.class)})
+// 指定 spring-cloud-provider 服务使用 LoadBalancedConfig 提供的策在均衡的策略
+@RibbonClient(name = "spring-cloud-provider", configuration = org.spring.cloud.consumer.ribbon.config.LoadBalancedConfig.class)
+@EnableEurekaClient
+@RestController
+@SpringBootApplication
+public class ConsumerRibbonApplication {
+```
+
+![image](https://miansen.wang/assets/20190929175703.png)
+
+
+这两种方式使用一种就可以了，我个人喜欢第二种，因为这样包结构不会被破坏。
+
+重新启动 `spring-cloud-consumer-ribbon` 服务，访问 `http://localhost:8077/users/zhangsan`，可以看到每次访问都是同一个端口。当然这个只是测试用例，现实中并不会采用这种负载均衡的策略。
 
 ![image](https://miansen.wang/assets/ribbon2.gif)
 
@@ -231,11 +272,12 @@ public class UserController {
 
 ### 修改 Feign 的默认配置
 
-修改 Feign 的默认配置也存在包扫描的问题，跟修改 Ribbon 的策略一样，我们把包放在 SpringBoot 扫描不到的地方。
+修改 Feign 的默认配置也存在包扫描的问题，跟修改 Ribbon 的策略一样，我们使用注解的方式忽略扫描的类。
 
 （1）新建一个 `config` 包，新建类 `FeignContract`。
 
 ```java
+@ExcludeFromComponentScan
 @Configuration
 public class FeignContractConfig {
 
@@ -248,12 +290,24 @@ public class FeignContractConfig {
 
 项目结构如下：
 
-![image](https://miansen.wang/assets/20190926155113.png)
+![image](https://miansen.wang/assets/20190929180639.png)
 
 （2）在 `UserFeignClient` 类中的注解 `@FeignClient` 指定 `configuration` 参数。
 
 ```java
 @FeignClient(name = "spring-cloud-provider", configuration = FeignContractConfig.class)
+```
+
+（3）启动类指定包扫描忽略使用 @ExcludeFromComponentScan 注解的类
+
+```java
+//忽略使用  @ExcludeFromComponentScan 注解的类
+@ComponentScan(excludeFilters = {@ComponentScan.Filter(type = FilterType.ANNOTATION, value = ExcludeFromComponentScan.class)})
+@EnableFeignClients
+@EnableEurekaClient
+@RestController
+@SpringBootApplication
+public class ConsumerFeignApplication {
 ```
 
 我们在 `FeignContractConfig` 类中修改了 `Feign` 的 `Contract` ，`Contract` 是一个契约的概念。 `Feign` 默认的契约是 `SpringMVC`，所以我们在 `UserFeignClient` 类中使用的是 `SpringMVC` 的注解。现在 `Contract.Default()` 使用的契约是 `Feign `自己的，也就是说我们要把 `SpringMVC` 的注解修改为 `Feign` 的注解，否则项目启动不了。
