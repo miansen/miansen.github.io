@@ -60,7 +60,7 @@ spring.cloud.config.server.git.password=
 - application-prod.properties
 - application-prod.yml
 
-可以看到这4个配置文件的命名都有一定的规律，可以概况为：{应用名} - {环境名} . {格式名}
+这4个配置文件的命名都有一定的规律，可以概括为：{应用名} - {环境名} . {格式名}
 
 为什么要这样的命名格式呢，随便命名不行吗？
 
@@ -83,3 +83,65 @@ spring.cloud.config.server.git.password=
 ![image](https://miansen.wang/assets/20191022184555.png)
 
 可以看到返回了配置文件的内容，证明配置服务端可以从远程 Git 仓库获取到配置信息。
+
+## 客户端
+
+客户端就是各个微服务应用了，为了演示简单，我这里新建一个子工程，命名为 spring-cloud-config-client
+
+pom.xml 引入下面的依赖
+
+```xml
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-config</artifactId>
+</dependency>
+```
+
+注意客户端引入的是 `spring-cloud-starter-config` 包
+
+新建 bootstrap.properties 配置文件，boostrap 由父 ApplicationContext 加载，比 applicaton 优先加载
+
+```properties
+# 指定服务名称
+spring.application.name=spring-cloud-config-client
+# 指定运行端口
+server.port=8073
+
+# 服务配置中心的地址
+spring.cloud.config.uri=http://localhost:8072/
+# 指定配置文件的分支
+spring.cloud.config.label=master
+# 指定配置文件的环境
+spring.cloud.config.profile=dev
+```
+
+启动类把从服务端获取到的配置输出，以便能直观的看到
+
+```java
+@RestController
+@SpringBootApplication
+public class SpringCloudConfigClientApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SpringCloudConfigClientApplication.class, args);
+	}
+	
+	@Value("${key}")
+    private String key;
+
+    @GetMapping("/key")
+    public String getKey() {
+        return key;
+    }
+}
+```
+
+接着启动客户端，访问 `http://localhost:8073/key`，输出内容如下：
+
+![image](https://miansen.wang/assets/20191030192739.png)
+
+以后客户端切换配置时只需要修改 spring.cloud.config.profile 的值即可
