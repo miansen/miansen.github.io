@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 一、SpringCloud-服务提供者与服务消费者
+title: 一、Spring Cloud-服务提供者与服务消费者
 date: 2019-09-20
 categories: SpringCloud
 tags: SpringCloud
@@ -10,11 +10,11 @@ author: 龙德
 * content
 {:toc}
 
-本篇以及后面的所有文章都是使用如下环境：
+本篇以及后面的系列文章都是使用以下环境：
 
 - JDK 版本：1.8
 
-- IDA：Eclipse
+- IDA：Eclipse 4.6.0
 
 - Maven 版本：3.5.0
 
@@ -22,15 +22,18 @@ author: 龙德
 
 - SpringCloud 版本：Greenwich.RELEASE
 
-（1）首先创建一个 Maven 工程作为父工程，所有的子工程都继承这个父工程，用以管理子工程的版本依赖。
+## 父工程
 
-父工程的 `pom.xml` 如下：
+创建一个父工程，命名为 spring-cloud-pom， 所有的子工程都继承这个父工程，用以管理子工程的版本依赖。
+
+**pom.xml**
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	
+	<!-- Spring Boot -->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
@@ -52,6 +55,7 @@ author: 龙德
 		<spring-cloud.version>Greenwich.RELEASE</spring-cloud.version>
 	</properties>
 	
+	<!-- Spring Cloud -->
 	<dependencyManagement>
 	   <dependencies>
 	       <dependency>
@@ -75,11 +79,13 @@ author: 龙德
 </project>
 ```
 
-父工程只留一个 `pom.xml` 文件就可以了，其他的文件目录都可以不要
+父工程只留一个 pom.xml 文件就可以了，其他的文件目录都可以不要。
 
-（2）然后在父工程下新建一个服务提供者工程 spring-cloud-provider
+## 服务提供者
 
-`pom.xml` 如下：
+在父工程下新建一个子工程 spring-cloud-provider，作为服务提供者。
+
+**pom.xml**
 
 ```xml
 <?xml version="1.0"?>
@@ -107,39 +113,37 @@ author: 龙德
 </project>
 ```
 
-（3）在 `resources` 文件夹下新建 `application.properties`
+**application.properties**
 
-添加如下内容：
-
-```
+```properties
 # 服务名字
 spring.application.name=spring-cloud-provider
-# 在 8078 端口启动
-server.port=8078
+# 在 8071 端口启动
+server.port=8071
 ```
 
-（4）在启动类里简单的输出一些信息
+**controller**
+
+创建一个 Controller，提供一个接口给其他服务查询，简单的输出一些信息即可。
 
 ```java
 @RestController
-@SpringBootApplication
-public class ProviderApplication {
+public class UserController {
 
-	public static void main(String[] args) {
-		SpringApplication.run(ProviderApplication.class, args);
-	}
-
-	@Value("${server.port}")
-    private String port;
-	
 	@GetMapping("/users/{name}")
-	public String getUser(@PathVariable("name") String name) {
-		return "user name: "+ name +", server name: spring-cloud-provider, port: " + port;
+	public String users(@PathVariable("name") String name) {
+		return "hello " + name;
 	}
 }
 ```
 
-（5）在父工程下新建一个服务消费者工程 spring-cloud-consumer
+启动服务，访问 http://localhost:8071/user/zhangsan ，如果能看到我们返回的 "hello zhangsan" 字符串，就证明接口提供成功了。
+
+## 服务消费者
+
+在父工程下新建一个子工程 spring-cloud-consumer，作为服务消费者。
+
+**pom.xml**
 
 ```xml
 <?xml version="1.0"?>
@@ -167,48 +171,70 @@ public class ProviderApplication {
 </project>
 ```
 
-（6）在 `resources` 文件夹下新建 `application.properties`
+**application.properties**
 
-添加如下内容：
-
-```
+```properties
 # 服务名字
 spring.application.name=spring-cloud-consumer
-# 在 8079 端口启动
-server.port=8079
+# 在 8072 端口启动
+server.port=8072
 ```
 
-（7）在服务消费者的启动类里调用服务提供者
+**RestTemplate**
+
+RestTemplate 是 Spring 提供的用于访问 Rest 服务的客户端，RestTemplate 提供了多种便捷访问远程 Http 服务的方法，能够大大提高客户端的编写效率。我们通过配置 RestTemplate 来调用接口。
 
 ```java
-@RestController
-@SpringBootApplication
-public class ConsumerApplication {
+@Configuration
+public class BeanConfiguration {
 
-	public static void main(String[] args) {
-		SpringApplication.run(ConsumerApplication.class, args);
+	@Bean
+	public RestTemplate getRestTemplate() {
+		return new RestTemplate();
 	}
-	
-	@GetMapping("/users/{name}")
-	public String getUser(@PathVariable("name") String name) {
-		return new RestTemplate().getForObject("http://localhost:8078/users/" + name, String.class);
-	}
-
 }
 ```
 
-服务消费者的 getUser() 方法没有自己实现，而是调用的服务提供者的 getUser() 方法。
+**controller**
 
-（8）创建好的整体工程结构如下
+创建 controller，利用 RestTemplate 访问服务提供者的接口。
 
-![image](https://miansen.wang/assets/20190920171238.png)
+```java
+@RestController
+public class UserController {
 
-（9）依次启动服务提供者和服务消费者
+	@Autowired
+	private RestTemplate restTemplate;
+	
+	@GetMapping("/users/{name}")
+	public String getUser(@PathVariable("name") String name) {
+		return restTemplate.getForObject("http://localhost:8071/users/" + name, String.class);
+	}
+}
+```
 
-（10）访问服务消费者的地址 `http://localhost:8079/users/zhangsan`，同样也能取得服务提供者的信息。
+服务消费者的 getUser() 方法没有自己实现，而是调用服务提供者的接口。
 
-![image](https://miansen.wang/assets/20190926141752.png)
+启动服务消费者，访问 http://localhost:8072/users/zhangsan ，如果返回 "hello zhangsan" 字符串就证明调用成功了。
 
-这样一个简单的伪 `SpringCloud` 项目的服务提供者和消费者就已经完成了。
+这样一个简单的伪微服务项目的服务提供者和消费者就已经完成了。
+
+之所以说是伪微服务，是因为服务提供者和服务消费者其实是两个独立的应用，它们之间只是简单的通过 http 的方式进行资源访问和操作。而真正微服务架构不仅仅是将单体应用划分为小型的服务单元这么简单，还需要一套的基础组件来管理各个服务，如服务注册、服务发现、配置中心、消息总线、负载均衡、断路器、数据监控等。Spring Cloud 就是这一系列微服务基础组件框架的集合，利用 Spring Boot 的开发便利性，巧妙地简化了微服务系统基础设施的开发。
+
+通俗地讲，Spring Cloud 就是用于构建微服务开发和治理的框架集合（它并不是具体的一个框架，而是框架集合）
+
+Spring Cloud 提供的微服务基础组件有：
+
+- Eureka：服务注册中心，用于服务管理
+- Ribbon：基于客户端的负载均衡组件
+- Hystrix：容错框架，能够防止服务的雪崩效应
+- Feign：Web 服务客户端，能够简化 HTTP 接口的调用
+- Zuul：API 网关，提供路由转发、请求过滤等功能
+- Config：分布式配置管理
+- Sleuth：服务跟踪
+- Stream：构建消息驱动的微服务应用程序的框架
+- Bus：消息代理的集群消息总线
+
+所以接下来，我们利用 Spring Cloud 提供的组件，一步步的构建出一个真正的微服务系统（Demo）。
 
 源码下载：[https://github.com/miansen/SpringCloud-Learn](https://github.com/miansen/SpringCloud-Learn)
