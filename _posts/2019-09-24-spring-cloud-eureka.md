@@ -105,7 +105,7 @@ public class EurekaServerApplication {
 
 **修改 application.properties 文件，添加以下配置：**
 
-```
+```properties
 # 指定服务名称
 spring.application.name=spring-cloud-provider
 # 指定运行端口
@@ -162,7 +162,7 @@ public class ProviderApplication {
 
 **修改 application.properties 文件，添加以下配置：**
 
-```
+```properties
 # 指定服务名称
 spring.application.name=spring-cloud-consumer
 # 指定运行端口
