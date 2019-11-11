@@ -141,7 +141,7 @@ public class BeanConfiguration {
 
 启动成功后，访问服务消费者 [http://localhost:8073/users/zhangsan](http://localhost:8073/users/zhangsan)，每次访问都会轮流的调用不同端口的消费提供者（注意看端口的变化）。
 
-![image](/assets/ribbon3.png)
+![image](/assets/ribbon3.gif)
 
 ### 自定义负载均衡策略
 
