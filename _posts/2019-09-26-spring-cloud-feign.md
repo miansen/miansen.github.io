@@ -89,7 +89,7 @@ public class UserController {
 }
 ```
 
-启动服务注册中心和 spring-cloud-consumer-feign，访问 [http://localhost:8074/users/zhangsan](http://localhost:8074/users/zhangsan) 同样能取得数据。
+启动 spring-cloud-eureka-server、spring-cloud-provider 和 spring-cloud-consumer-feign，访问 [http://localhost:8074/users/zhangsan](http://localhost:8074/users/zhangsan) 同样能取得数据。
 
 ## 继承特性
 
@@ -190,7 +190,7 @@ public class UserController {
 
 ![image](/assets/20191111171356.png)
 
-### 修改 Feign 的默认配置
+## 修改 Feign 的默认配置
 
 修改 Feign 的默认配置也存在包扫描的问题，跟修改 Ribbon 的策略一样，我们使用注解的方式忽略扫描的类。
 
