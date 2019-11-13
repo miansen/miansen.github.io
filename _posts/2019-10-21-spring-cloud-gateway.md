@@ -35,9 +35,9 @@ author: 龙德
 </dependency>
 ```
 
-application.propertise
+application.properties
 
-```propertise
+```properties
 spring.application.name=spring-cloud-gateway
 server.port=8074
 spring.cloud.gateway.routes[0].id=my-gateway
