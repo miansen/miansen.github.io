@@ -12,6 +12,9 @@
       </a>
     </div>
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+	  <form class="navbar-form navbar-left hidden-xs hidden-sm">
+	    <div class="form-group has-feedback">{% include sidebar-search.html %}</div>
+      </form>
       <ul class="nav navbar-nav navbar-right">
         <li {% if page.url == "/" %} class="active" {% endif %}>
           <a href="{{site.url}}" style="color: #fff;">
@@ -29,12 +32,12 @@
             </li>
           {% endif %}
         {% endfor %}
-        <li>
+        <!--<li>
           <a href="javascript:;" data-toggle="modal" data-target="#searchModal">
             <i class="fa fa-search"></i>
             搜索
           </a>
-        </li>
+        </li>-->
       </ul>
     </div>
   </div>
