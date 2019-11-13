@@ -29,8 +29,23 @@ layout: default
             <a href="{{ post.url | prepend: site.baseurl }}" class="btn btn-default read-more" style="color: #2288bb;">阅读更多</a>
           </div>
         {% if forloop.last %}
-
-        <div class="text-center paginate">
+		
+		<hr>
+        <div class="paginate" style="display: flex; justify-content: space-between;">
+		  <div style="flex: 1"  class="text-left">
+              {% if paginator.previous_page %}
+                <a href="{{ paginator.previous_page_path }}">较新的博客</a>
+              {% endif %}
+          </div>
+          <div style="flex: 1" class="text-center">{{ paginator.page }} / {{ paginator.total_pages }}</div>
+          <div style="flex: 1;" class="text-right">
+              {% if paginator.next_page %}
+                <a href="{{ paginator.next_page_path }}">较旧的博客</a>
+              {% endif %}
+          </div>
+	    </div>
+		
+        <!--<div class="text-center paginate">
           <ul class="pagination">
           {% if paginator.previous_page %}
             <li class="prev">
@@ -52,7 +67,7 @@ layout: default
             </i>
           {% endif %}
           </ul>
-        </div>
+        </div>-->
 
         <!-- <div class="text-center paginate">
           {% if paginator.previous_page %}
