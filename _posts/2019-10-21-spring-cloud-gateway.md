@@ -24,7 +24,7 @@ Spring Cloud Gateway 作为 Spring Cloud 生态系统中的网关，目标是替
 
 ## 工作原理
 
-![image](/assets/spring-cloud-gateway.png)
+![image](https://miansen.wang/assets/spring-cloud-gateway.png)
 
 当客户端请求到达 Spring Cloud Gateway 后，Gateway Handler Mapping 会将其拦截，根据 predicates 确定请求与哪个路由匹配。如果匹配成功，则会将请求发送至 Gateway web handler。Gateway web handler 处理请求会经过一系列 "pre" 类型的过滤器，然后执行代理请求。执行完之后再经过一系列的 "post" 类型的过滤器，最后返回给客户端。
 
@@ -165,7 +165,7 @@ public class UserController {
 
 访问 [http://localhost:8074/user-service/users/zhangsan](http://localhost:8074/user-service/users/zhangsan)，输出如下：
 
-![image](/assets/20191114150630.png)
+![image](https://miansen.wang/assets/20191114150630.png)
 
 ### 配置默认路由
 
@@ -199,7 +199,7 @@ http://网关地址/服务名称(大写)/**
 
 结果如图：
 
-![image](/assets/20191114152229.png)
+![image](https://miansen.wang/assets/20191114152229.png)
 
 服务名称也可以配置成小写的格式，只需要增加一条配置即可：
 
@@ -474,5 +474,89 @@ public RouteLocator myRoutes(RouteLocatorBuilder builder) {
 通过这个例子可以知道，当 Gateway Handler Mapping 确定请求与哪个路由匹配之后，会将请求发送至 Gateway web handler 进行 GatewayFilter 拦截。 GatewayFilter 分为请求 filter 和 响应 filter，前者可以对请求信息过滤，后者可以对响应信息过滤。
 
 #### 自定义 GatewayFilter
+
+自定义 Spring Cloud Gateway 过滤器工厂需要继承 AbstractGatewayFilterFactory 类，重写 apply 方法的逻辑。命名需要以 GatewayFilterFactory 结尾。
+
+下面我们自己实现一个 AddRequestHeaderGatewayFilterFactory，就命名为 MyAddRequestHeaderGatewayFilterFactory 吧。在使用的时候 MyAddRequestHeader 就是这个过滤器工厂的名称。
+
+代码如下：
+
+```java
+@Component
+public class MyAddRequestHeaderGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<MyAddRequestHeaderGatewayFilterFactory.Config> {
+
+	// 必须要显示调用父类的构造方法，指定 configClass，否则报类型转换异常
+	public MyAddRequestHeaderGatewayFilterFactory() {
+		super(Config.class);
+	}
+
+	// 指定 args 数量和顺序，否则无法初始化 Config
+	@Override
+	public List<String> shortcutFieldOrder() {
+		return Arrays.asList("headerName", "headerValue");
+	}
+
+	// 在这里面写逻辑
+	@Override
+	public GatewayFilter apply(Config config) {
+		return (exchange, chain) -> {
+			ServerHttpRequest request = exchange.getRequest().mutate()
+					.header(config.getHeaderName(), config.getHeaderValue()).build();
+			return chain.filter(exchange.mutate().request(request).build());
+		};
+	}
+
+	// 配置类
+	public static class Config {
+
+		// 请求头的名称
+		private String headerName;
+
+		// 请求头的值
+		private String headerValue;
+
+		public String getHeaderName() {
+			return headerName;
+		}
+
+		public void setHeaderName(String headerName) {
+			this.headerName = headerName;
+		}
+
+		public String getHeaderValue() {
+			return headerValue;
+		}
+
+		public void setHeaderValue(String headerValue) {
+			this.headerValue = headerValue;
+		}
+	}
+}
+```
+
+配置文件：
+
+```properties
+spring.cloud.gateway.routes[0].filters[0]=MyAddRequestHeader=X-Request-Foo, Bar
+```
+
+如果你不想通过配置文件的形式使用过滤器工厂，那么你可以在 myRoutes 方法中直接实现 GatewayFilter 接口，然后写上你的过滤逻辑。
+
+代码如下：
+
+```java
+@Bean
+public RouteLocator myRoutes(RouteLocatorBuilder builder) {
+	return builder.routes().route(p -> p.path("/get").filters(f -> f.filter((exchange, chain) -> {
+		ServerHttpRequest request = exchange.getRequest().mutate().header("X-Request-Foo", "Bar").build();
+		return chain.filter(exchange.mutate().request(request).build());
+	}).addResponseHeader("X-Response-Foo", "Bar")).uri("http://httpbin.org")).build();
+}
+```
+
+这段代码调用链比较复杂，但是只要自己动手敲一遍就能理清楚其中的逻辑。
+
+启动服务，访问 [http://localhost:8074/get](http://localhost:8074/get)，如果能看到添加了一个名为 X-Request-Foo，值为 Bar 的请求头，就说明我们自定义的过滤器工厂生效了。
 
 源码下载：[https://github.com/miansen/SpringCloud-Learn](https://github.com/miansen/SpringCloud-Learn)
