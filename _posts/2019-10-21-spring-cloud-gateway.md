@@ -559,4 +559,39 @@ public RouteLocator myRoutes(RouteLocatorBuilder builder) {
 
 启动服务，访问 [http://localhost:8074/get](http://localhost:8074/get)，如果能看到添加了一个名为 X-Request-Foo，值为 Bar 的请求头，就说明我们自定义的过滤器工厂生效了。
 
+### GlobalFilter
+
+自定义一个 GlobalFilter，实现对 IP 地址的限制。
+
+代码如下：
+
+```java
+@Component
+public class IPCheckFilter implements GlobalFilter, Ordered {
+
+	@Override
+	public int getOrder() {
+		return 0;
+	}
+
+	@Override
+	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+		HttpHeaders headers = exchange.getRequest().getHeaders();
+		InetSocketAddress host = headers.getHost();
+		String hostName = host.getHostName();
+		// 此处的 IP 地址是写死的，实际中需要采取配置的方式
+		if ("localhost".equals(hostName)) {
+			ServerHttpResponse response = exchange.getResponse();
+			byte[] datas = "{\"code\": 401,\"message\": \"非法请求\"}".getBytes(StandardCharsets.UTF_8);
+            DataBuffer buffer = response.bufferFactory().wrap(datas);
+			response.setStatusCode(HttpStatus.UNAUTHORIZED);
+			response.getHeaders().add("Content-Type", "application/json;charset=UTF-8");
+			return response.writeWith(Mono.just(buffer));
+		}
+		return chain.filter(exchange);
+	}
+
+}
+```
+
 源码下载：[https://github.com/miansen/SpringCloud-Learn](https://github.com/miansen/SpringCloud-Learn)
