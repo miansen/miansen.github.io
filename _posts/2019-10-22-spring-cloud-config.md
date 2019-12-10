@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 七、SpringCloud-服务配置中心 Spring-Cloud-Config
+title: 八、SpringCloud-服务配置中心 Spring-Cloud-Config
 date: 2019-10-22
 categories: SpringCloud
 tags: SpringCloud Spring-Cloud-Config
