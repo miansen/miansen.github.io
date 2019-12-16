@@ -1,6 +1,6 @@
 ---
 layout: post
-title: ApplicationContext 发布事件报错：Caused by: java.lang.IllegalStateException: ApplicationEventMulticaster not initialized - call 'refresh' before multicasting events via the context: Root WebApplicationContext: startup date [Sat Dec 14 15:02:30 CST 2019]; root of context hierarchy
+title: ApplicationContext 发布事件报错-Caused by-java.lang.IllegalStateException-ApplicationEventMulticaster not initialized - call 'refresh' before multicasting events via the context-Root WebApplicationContext-startup date [Sat Dec 14 15:02:30 CST 2019];root of context hierarchy
 date: 2019-12-16
 categories: SpringMVC
 tags: ApplicationContext 事件
