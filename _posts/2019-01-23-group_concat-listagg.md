@@ -2,8 +2,8 @@
 layout: post
 title: mysql group_concat函数和oracle listagg函数的作用和区别
 date: 2019-01-23
-categories: MySQL Oracle
-tags: group_concat listagg
+categories: 数据库
+tags: MySQL Oracle group_concat listagg
 author: 龙德
 ---
 

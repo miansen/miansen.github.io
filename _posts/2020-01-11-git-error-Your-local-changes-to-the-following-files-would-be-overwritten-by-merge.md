@@ -2,7 +2,7 @@
 layout: post
 title: Git报错：Your local changes to the following files would be overwritten by merge：xx
 date: 2020-01-11
-categories: Git
+categories: 杂七杂八
 tags: Git
 author: 龙德
 ---
