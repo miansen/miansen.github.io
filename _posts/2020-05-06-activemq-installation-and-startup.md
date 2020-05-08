@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 一、学习ActiveMQ-安装与启动
+title: 二、学习ActiveMQ-安装与启动
 date: 2020-05-06
 categories: ActiveMQ
 tags: ActiveMQ
@@ -10,39 +10,15 @@ author: 龙德
 * content
 {:toc}
 
-## 前言
-
-学习 ActiveMQ 之前先看一个概念：JMS。
-
-百度百科的描述：
-
-> JMS即Java消息服务（Java Message Service）应用程序接口，是一个Java平台中关于面向消息中间件（MOM）的API，用于在两个应用程序之间，或分布式系统中发送消息，进行异步通信。
-
-看到 "接口" 两个字，下意识就想到了规范。没错，JMS 和 JDBC、JPA 一样，只是一个规范，也就是只给出了接口，具体的内容由各个厂商去实现。
-
-<center>
-
-![image](/assets/20200506143952.png)
-
-<small>javax.jms包提供的部分接口示意图</small>
-
-</center>
-
-我们接下来学习的 ActiveMQ 就是 apache 出品的一个非常流行的消息中间件。
-
 ## 安装
 
 从官网 [http://activemq.apache.org](http://activemq.apache.org) 可以下载 ActiveMQ，现在最新版本是 5.x，我们下载 Windows 平台的。
 
-<center>
+![image](https://miansen.wang/assets/20200506145007.png)
 
-![image](/assets/20200506145007.png)
+![image](https://miansen.wang/assets/20200506145043.png)
 
-![image](/assets/20200506145043.png)
-
-![image](/assets/20200506150402.png)
-
-</center>
+![image](https://miansen.wang/assets/20200506150402.png)
 
 ActiveMQ 各个目录的作用：
 
@@ -60,19 +36,11 @@ ActiveMQ 各个目录的作用：
 
 进入 bin/win64 目录，直接运行 activemq.bat，就可以启动 ActiveMQ。
 
-<center>
-
-![image](/assets/20200506151508.png)
-
-</center>
+![image](https://miansen.wang/assets/20200506151508.png)
 
 访问首页：[http://localhost:8161/index.html](http://localhost:8161/index.html)
 
-<center>
-
-![image](/assets/20200506151657.png)
-
-</center>
+![image](https://miansen.wang/assets/20200506151657.png)
 
 看到这个页面就说明已经成功启动 ActiveMQ 了。
 
@@ -80,26 +48,14 @@ ActiveMQ 各个目录的作用：
 
 访问控制台需要输入账号和密码，账号和密码配置在 conf 目录下的 jetty-realm.properties 文件里。
 
-<center>
-
-![image](/assets/20200506152709.png)
-
-</center>
+![image](https://miansen.wang/assets/20200506152709.png)
 
 端口号配置在 jetty.xml 文件里。
 
-<center>
-
-![image](/assets/20200506152848.png)
-
-</center>
+![image](https://miansen.wang/assets/20200506152848.png)
 
 输入账号密码就可以访问控制台了。
 
-<center>
-
-![image](/assets/20200506152957.png)
-
-</center>
+![image](https://miansen.wang/assets/20200506152957.png)
 
 至此，ActiveMQ 的安装和启动就完成了。
