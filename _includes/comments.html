@@ -1,12 +1,12 @@
 {% if site.disqus_shortname %}
 <div class="panel panel-default">
-  <div class="panel-heading" id="comments"><i class="fa fa-comments"></i> 添加评论<small>想要留下评论，请在此<a href="https://github.com/miansen/miansen.github.io/issues/{{site.posts.size}}">Github issue</a> 页面完成操作，谢谢！</small</div>
+  <div class="panel-heading" id="comments"><i class="fa fa-comments"></i> 添加评论<small> 想要留下评论，请在此<a href="https://github.com/miansen/miansen.github.io/issues/{{site.posts.size}}">Github issue</a> 页面完成操作，谢谢！</small></div>
   <div class="panel-body" id="comments-body"></div>
   <script>
       (function () {
 		var issueId = "{{site.posts.size}}";
 		$.ajax({
-			url: "https://api.github.com/repos/miansen/miansen.github.io/issues/' + issueId + '/comments?per_page=100",
+			url: "https://api.github.com/repos/miansen/miansen.github.io/issues/" + issueId + "/comments?per_page=100",
 			type: "get",
 			dataType: "json",
 			success: function(data) {
