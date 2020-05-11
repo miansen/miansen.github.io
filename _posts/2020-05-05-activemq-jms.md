@@ -22,9 +22,9 @@ author: 龙德
 
 ## JMS的组成
 
-从上图可以看出，JMS 的组成有4个部分，它们分别是：
-
 ![image](https://miansen.wang/assets/20200102060824826.png)
+
+从上图可以看出，JMS 的组成有4个部分，它们分别是：
 
 - JMS provider：实现 JMS 接口规范的消息中间件，也就是 MQ 服务器
 - JMS producer：消息生产者，创建和发送JMS消息的客户端应用
