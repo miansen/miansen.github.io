@@ -1,23 +1,28 @@
 {% if site.disqus_shortname %}
 <div class="panel panel-default">
-  <div class="panel-heading" id="comments"><i class="fa fa-comments"></i> 添加评论</div>
-  <div class="panel-body">
-    <div id="disqus_thread"></div>
-    <script>
-      var disqus_config = function () {
-        this.page.url = '{{ site.url }}{{ page.url }}';
-        this.page.identifier = '{{ site.url }}{{ page.url }}';
-      };
+  <div class="panel-heading" id="comments"><i class="fa fa-comments"></i> 添加评论<small>想要留下评论，请在此<a href="https://github.com/miansen/miansen.github.io/issues/{{site.posts.size}}">Github issue</a> 页面完成操作，谢谢！</small</div>
+  <div class="panel-body" id="comments-body"></div>
+  <script>
       (function () {
-        var d = document,
-          s = d.createElement('script');
-        s.src = '//{{site.disqus_shortname}}.disqus.com/embed.js';
-        s.setAttribute('data-timestamp', +new Date());
-        (d.head || d.body).appendChild(s);
+		var issueId = "{{site.posts.size}}";
+		$.ajax({
+			url: "https://api.github.com/repos/miansen/miansen.github.io/issues/' + issueId + '/comments?per_page=100",
+			type: "get",
+			dataType: "json",
+			success: function(data) {
+				var user = data[i].user.login;
+				var userLink = 'https://www.github.com/' + user;
+				var link = 'https://github.com/miansen/miansen.github.io/issues/' + issueId + '#issuecomment-' + data[i].url.substring(data[i].url.lastIndexOf('/') + 1);
+				var body = data[i].body;
+				var avatarLink = data[i].user.avatar_url;
+				var date = data[i].created_at.substring(0, 10);
+				$("#comments-body").append('<div class="comment"><div class="comment-header"><div class="comment-avatar"><img src="' + avatarLink + '" alt="" width="20" height="20"></div><a class="comment-user" href="' + userLink + '">' + user + '</a><a class="comment-date" href="' + link + '">' + date + '</a></div><div class="comment-body">' + body + '</div></div>');
+			},
+			error: function(data) {
+				$("#comments-body").append("已关闭评论");
+			}
+		});
       })();
     </script>
-    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments
-      powered by Disqus.</a></noscript>
-  </div>
 </div>
 {% endif %}

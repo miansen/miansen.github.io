@@ -1,7 +1,7 @@
 $(function () {
 
   $(".panel .excerpt").each(function(index,item){
-    var newExcerpt = $(this).text().substring(0,250).replace(/[\r\n]/g,"") + "...";
+    var newExcerpt = $(this).text().substring(0,150).replace(/[\r\n]/g,"") + "...";
     $(this).text(newExcerpt);
   });
 
