@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 九、学习ActiveMQ-消息生产者的事务
+title: 9.学习ActiveMQ-消息生产者的事务
 date: 2020-05-11
 categories: ActiveMQ
 tags: ActiveMQ

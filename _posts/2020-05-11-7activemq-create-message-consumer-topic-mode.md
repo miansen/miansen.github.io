@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 七、学习ActiveMQ-消息消费者（主题模式）
+title: 7.学习ActiveMQ-消息消费者（主题模式）
 date: 2020-05-11
 categories: ActiveMQ
 tags: ActiveMQ

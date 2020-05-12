@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 十二、学习ActiveMQ-事务模式下消费者签收
+title: 12.学习ActiveMQ-事务模式下消费者签收
 date: 2020-05-11
 categories: ActiveMQ
 tags: ActiveMQ
@@ -9,6 +9,8 @@ author: 龙德
 
 * content
 {:toc}
+
+前面讲的签收是没有事务的，如果有事务，签收又是怎么样的呢？来看下面的实验。
 
 将connection.createSession()的第一个参数改为true，表示消费者采用事务的方式来消费消息。
 

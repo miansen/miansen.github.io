@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 十一、学习ActiveMQ-非事务模式下消费者签收
+title: 11.学习ActiveMQ-非事务模式下消费者签收
 date: 2020-05-11
 categories: ActiveMQ
 tags: ActiveMQ

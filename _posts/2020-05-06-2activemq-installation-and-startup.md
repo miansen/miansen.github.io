@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 二、学习ActiveMQ-安装与启动
+title: 2.学习ActiveMQ-安装与启动
 date: 2020-05-06
 categories: ActiveMQ
 tags: ActiveMQ

@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 八、学习ActiveMQ-主题模式的特点以及消费者消费消息的3种情况
+title: 8.学习ActiveMQ-主题模式的特点以及消费者消费消息的3种情况
 date: 2020-05-11
 categories: ActiveMQ
 tags: ActiveMQ

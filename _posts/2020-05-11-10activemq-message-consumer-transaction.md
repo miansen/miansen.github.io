@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 十、学习ActiveMQ-消息消费者的事务
+title: 10.学习ActiveMQ-消息消费者的事务
 date: 2020-05-11
 categories: ActiveMQ
 tags: ActiveMQ
