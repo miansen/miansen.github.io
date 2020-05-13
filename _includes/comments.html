@@ -4,22 +4,30 @@
   <div class="panel-body" id="comments-body"></div>
   <script>
       (function () {
-		var issueId = "{{site.posts.size}}";
+		var issueId = $(".post-content #issueId").text();
+		if (!issueId) {
+			$("#comments-body").html("已关闭评论");
+			return;
+		}
 		$.ajax({
 			url: "https://api.github.com/repos/miansen/miansen.github.io/issues/" + issueId + "/comments?per_page=100",
 			type: "get",
 			dataType: "json",
 			success: function(data) {
-				var user = data[i].user.login;
-				var userLink = 'https://www.github.com/' + user;
-				var link = 'https://github.com/miansen/miansen.github.io/issues/' + issueId + '#issuecomment-' + data[i].url.substring(data[i].url.lastIndexOf('/') + 1);
-				var body = data[i].body;
-				var avatarLink = data[i].user.avatar_url;
-				var date = data[i].created_at.substring(0, 10);
-				$("#comments-body").append('<div class="comment"><div class="comment-header"><div class="comment-avatar"><img src="' + avatarLink + '" alt="" width="20" height="20"></div><a class="comment-user" href="' + userLink + '">' + user + '</a><a class="comment-date" href="' + link + '">' + date + '</a></div><div class="comment-body">' + body + '</div></div>');
+				if (data.length > 0) {
+					var user = data[i].user.login;
+					var userLink = 'https://www.github.com/' + user;
+					var link = 'https://github.com/miansen/miansen.github.io/issues/' + issueId + '#issuecomment-' + data[i].url.substring(data[i].url.lastIndexOf('/') + 1);
+					var body = data[i].body;
+					var avatarLink = data[i].user.avatar_url;
+					var date = data[i].created_at.substring(0, 10);
+					$("#comments-body").append('<div class="comment"><div class="comment-header"><div class="comment-avatar"><img src="' + avatarLink + '" alt="" width="20" height="20"></div><a class="comment-user" href="' + userLink + '">' + user + '</a><a class="comment-date" href="' + link + '">' + date + '</a></div><div class="comment-body">' + body + '</div></div>');
+				} else {
+					$("#comments-body").html("目前暂无评论");
+				}
 			},
 			error: function(data) {
-				$("#comments-body").append("已关闭评论");
+				$("#comments-body").html("已关闭评论");
 			}
 		});
       })();
