@@ -84,4 +84,4 @@ activemq_lock：
 
 上述内容可以联系微信公众号来理解，微信公众号发布过的文章，不能因为订阅者已经收到了或者是服务器关闭了，就把发布过的文章和订阅者清空，这是不合理的，从这个角度来理解就能明白了。
 
-<span id="issueId" style="display: none;">1</span>
+<span id="issueId" style="display: none;">3</span>

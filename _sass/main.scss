@@ -37,25 +37,12 @@ ul {
   }
 }
 
-/*
-a {
-  color: #222;
-  &:hover, &:focus, &:visited {
-    color: #222;
-  }
-}
-*/
-
 a {
   text-decoration:none;
   color: #2288bb;
   &:hover {
     text-decoration:underline;
     color: #33aaff;
-  }
-  &:visited {
-    text-decoration:none;
-    color: #2288bb;
   }
 }
 

@@ -1,35 +1,43 @@
 {% if site.disqus_shortname %}
 <div class="panel panel-default">
-  <div class="panel-heading" id="comments"><i class="fa fa-comments"></i> 添加评论<small> 想要添加评论，请在此 <a href="https://github.com/miansen/miansen.github.io/issues/{{site.posts.size}}">Github issue</a> 页面完成操作，谢谢！</small></div>
+  <div class="panel-heading" id="comments"><i class="fa fa-comments"></i> 添加评论</div>
   <div class="panel-body" id="comments-body"></div>
   <script>
       (function () {
 		var issueId = $(".post-content #issueId").text();
+		var $el = $("#comments-body");
 		if (!issueId) {
-			$("#comments-body").html("已关闭评论");
-			return;
-		}
-		$.ajax({
-			url: "https://api.github.com/repos/miansen/miansen.github.io/issues/" + issueId + "/comments?per_page=100",
-			type: "get",
-			dataType: "json",
-			success: function(data) {
-				if (data.length > 0) {
-					var user = data[i].user.login;
-					var userLink = 'https://www.github.com/' + user;
-					var link = 'https://github.com/miansen/miansen.github.io/issues/' + issueId + '#issuecomment-' + data[i].url.substring(data[i].url.lastIndexOf('/') + 1);
-					var body = data[i].body;
-					var avatarLink = data[i].user.avatar_url;
-					var date = data[i].created_at.substring(0, 10);
-					$("#comments-body").append('<div class="comment"><div class="comment-header"><div class="comment-avatar"><img src="' + avatarLink + '" alt="" width="20" height="20"></div><a class="comment-user" href="' + userLink + '">' + user + '</a><a class="comment-date" href="' + link + '">' + date + '</a></div><div class="comment-body">' + body + '</div></div>');
-				} else {
-					$("#comments-body").html("目前暂无评论");
+			$el.html("已关闭评论");
+		} else {
+			$("#comments").append('<small> 想要添加评论，请在此 <a href="https://github.com/miansen/miansen.github.io/issues/' + issueId + '">Github issue</a> 页面完成操作，谢谢！</small>');
+			$.ajax({
+				url: "https://api.github.com/repos/miansen/miansen.github.io/issues/" + issueId + "/comments?per_page=100",
+				type: "get",
+				dataType: "json",
+				beforeSend: function() {
+					$el.html('<div id="loading"><i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i></div>');
+				},
+				success: function(data) {
+					$("#loading").empty();
+					if (data.length > 0) {
+						for (var i = 0; i < data.length; i++) {
+							var user = data[i].user.login;
+							var userLink = 'https://www.github.com/' + user;
+							var link = 'https://github.com/miansen/miansen.github.io/issues/' + issueId + '#issuecomment-' + data[i].url.substring(data[i].url.lastIndexOf('/') + 1);
+							var body = data[i].body;
+							var avatarLink = data[i].user.avatar_url;
+							var date = data[i].created_at.substring(0, 10);
+							$el.append('<div class="comment"><div class="comment-header"><div class="comment-avatar"><img src="' + avatarLink + '" alt="" width="20" height="20"></div><a class="comment-user" href="' + userLink + '">' + user + '</a><a class="comment-date" href="' + link + '">' + date + '</a></div><div class="comment-body">' + body + '</div></div>');
+						}
+					} else {
+						$el.html("目前暂无评论");
+					}
+				},
+				error: function(data) {
+					$el.html("评论加载失败");
 				}
-			},
-			error: function(data) {
-				$("#comments-body").html("已关闭评论");
-			}
-		});
+			});
+		}
       })();
     </script>
 </div>
