@@ -12,7 +12,7 @@ author: 龙德
 
 Java 提供了多线程之间同步的机制，其中最基本的就是使用 synchronization 关键字。这个关键字大家用得比较多，但是可能没仔细梳理过它，这篇博客将仔细梳理 synchronization 关键字，让大家对它有一个更全面和深刻的认识。
 
-想要全面了解 synchronized，得先了解 3 个知识点：Java 内存模型（JMM）、对象的内存布局和 Monitor 对象
+想要全面了解 synchronized，得先了解 3 个知识点：Java 内存模型（JMM）、对象的内存布局和 Monitor 对象。
 
 ## Java 内存模型（JMM）
 
@@ -36,19 +36,21 @@ Java 提供了多线程之间同步的机制，其中最基本的就是使用 sy
 
 ## 对象的内存布局
 
-![image](https://pic4.zhimg.com/80/v2-d6ef637c95dd632316155cec75d22557_720w.jpg)
+![image](https://miansen.wang/assets/Object-is-memory-layout.png)
 
 一个 Java 对象在堆内存中包括对象头、实例数据和补齐填充 3 个部分。
 
-对象头包括 Mark Words（存储哈希码、GC分代年龄、锁标志位等）和 Klass Words（指向当前对象所属的类的地址，也就是 Class 对象），如果是数组对象，还有一个保存数组长度的空间。
+- 对象头包括 Mark Words（存储哈希码、GC分代年龄、锁标志位等）和 Klass Words（指向当前对象所属的类的地址，也就是 Class 对象），如果是数组对象，还有一个保存数组长度的空间。
 
-实例数据是对象真正存储的有效信息，包括了对象的所有成员变量，其大小由各个成员变量的大小共同决定。
+- 实例数据是对象真正存储的有效信息，包括了对象的所有成员变量，其大小由各个成员变量的大小共同决定。
 
-对齐填充不是必然存在的，仅仅起占位符的作用。
+- 对齐填充不是必然存在的，仅仅起占位符的作用。
 
 对象的内存布局跟 synchronized 有什么关系呢？
 
-别着急，下面介绍 synchronized 的使用的时候，会根据对象的内存布局来画图，更加直观的了解 synchronized。现在只需要记住对象头就可以了，对象头的 Mark Words 记录了指向 Monitor 对象的指针，通过它可以关联到 Monitor 对象。
+别着急，下面介绍 synchronized 的使用的时候，会根据对象的内存布局来画图，更加直观的了解 synchronized。现在只需要记住对象头就可以了，对象头的 Mark Words 有一块空间记录了指向 Monitor 对象的指针，通过它可以关联到 Monitor 对象。
+
+![image](https://miansen.wang/assets/Object-header.jpg)
 
 ## Monitor 对象
 
@@ -61,6 +63,96 @@ Monitor 对象记录了持有锁的线程信息、阻塞队列、等待队列等
 - _WaitSet：等待队列，记录调用 wait() 方法并还未被通知的线程
 
 当线程获得对象的监视器锁（Monitor）的时候，线程 id 等信息会拷贝进 _Owner 字段，其余线程会进入阻塞队列 _Entrylist，当持有锁的线程执行 wait() 方法，会立即释放锁进入 _Waitset 队列。当线程释放锁的时候，_Owner 会被置空，然后 _Entrylist 中的线程会竞争锁，竞争成功的线程 id 会写入 _Owner，其余线程继续在 _Entrylist 中等待。
+
+Java 对象如何跟 Monitor 关联？
+
+前面说过，对象头的 Mark Words 有一块空间记录了指向 Monitor 对象的指针，通过它可以关联到 Monitor 对象。请看下图：
+
+![image](https://miansen.wang/assets/Object-Monitor.png)
+
+## synchronized 的使用
+
+synchronized 关键字主要有两种使用方式：
+
+- synchronized 作用于方法，称为同步方法。同步方法被调用时，会自动执行加锁操作，只有加锁成功，方法体才会得到执行。如果被 synchronized 修饰的方法是实例方法，那么这个实例的监视器会被锁定。如果是 static 方法，线程会锁住相应的 Class 对象的监视器。方法体执行完成或者异常退出后，会自动执行解锁操作。
+
+- synchronized 代码块。synchronized(object) 在对某个对象上执行加锁时，会尝试在该对象的监视器上进行加锁操作，只有成功获取锁之后，线程才会继续往下执行。线程获取到了监视器锁后，将继续执行 synchronized 代码块中的代码，如果代码块执行完成，或者抛出了异常，线程将会自动对该对象上的监视器执行解锁操作。
+
+### synchronized 修饰实例方法
+
+synchronized 修饰实例方法，线程获得的是实例对象的监视器锁，请看下面的例子。
+
+```java
+public class Person {
+
+    private String name;
+    
+    private Integer age;
+    
+    private Dog dog;
+
+    public Person(String name, Integer age, Dog dog) {
+        this.name = name;
+        this.age = age;
+        this.dog = dog;
+    }
+
+    public synchronized void setA() {
+        System.out.println(Thread.currentThread().getName() + " 线程进入了 setA() 方法");
+    }
+    
+    public synchronized void setB() {
+        System.out.println(Thread.currentThread().getName() + " 线程进入了 setB() 方法");
+    }
+    
+    // 省略 Getters 和 Setters...
+}
+```
+
+```java
+public class Dog {
+
+    private String name;
+    
+    private Integer age;
+
+    public Dog(String name, Integer age) {
+        this.name = name;
+        this.age = age;
+    }
+    
+    // 省略 Getters 和 Setters...
+}
+```
+
+```java
+public static void main(String[] args) {
+    Dog dog = new Dog("汪汪", 1);
+    Person zhangsan = new Person("张三", 15, dog);
+    Thread t1 = new Thread(() -> zhangsan.setA());
+    Thread t2 = new Thread(() -> zhangsan.setA());
+    t1.start();
+    t2.start();
+}
+```
+
+启动 2 个线程，共同访问同一个实例对象的 setA() 方法，由于 setA() 方法被 synchronized 修饰，所以只能有一个线程会执行 setA() 方法，其它的线程都会阻塞。
+
+![image](https://miansen.wang/assets/20200605182603.png)
+
+如果 t2 线程访问的是 setB() 方法呢？
+
+Thread t2 = new Thread(() -> zhangsan.setB());
+
+这也是会阻塞的，因为 setA() 和 setB() 都是实例方法，线程获得的都是实例对象的监视器锁。
+
+![image](https://miansen.wang/assets/20200605183227.png)
+
+这时候的内存结构是这样的：
+
+![image](https://miansen.wang/assets/20200605185532.png)
+
+我画的不是很标准，仅仅是为了能更好的理解。
 
 ## 参考资料
 
