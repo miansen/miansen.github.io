@@ -22,7 +22,7 @@ Java 提供了多线程之间同步的机制，其中最基本的就是使用 sy
 > 
 > 所有的共享变量存在于主内存中，每个线程有自己的本地内存，线程读写共享数据也是通过本地内存交换的，所以可见性问题依然是存在的。这里说的本地内存并不是真的是一块给每个线程分配的内存，而是 JMM 的一个抽象，是对于寄存器、一级缓存、二级缓存等的抽象。
 
-![image](https://camo.githubusercontent.com/2df61e9867d603bd3216c12851b2f7bcaec8847b/68747470733a2f2f6d792d626c6f672d746f2d7573652e6f73732d636e2d6265696a696e672e616c6979756e63732e636f6d2f323031392d362f2545362539352542302545362538442541452545342542382538442545342542382538302545382538372542342e706e67)
+![image](https://miansen.wang/assets/20200607224621.png)
 
 总而言之，在 Java 内存模型下，所有的共享变量都存储在主内存中，每条线程还有自己的工作内存，线程的工作内存保存的是用到的共享变量的主内存副本的拷贝。线程对共享变量的所有操作都必须在工作内存中进行，而不能直接读写主内存。这就可能造成一个线程修改了一个变量的值，而另外一个线程还继续使用它在工作内存中的变量值的拷贝，造成数据的不一致。
 
@@ -166,7 +166,7 @@ Thread t2 = new Thread(() -> zhangsan.setB());
 
 ![image](https://miansen.wang/assets/20200606182510.png)
 
-我画的不是很严谨，大家能理解就好。
+我画的不是很严谨，仅供参考，大家能理解就好。
 
 如果 t2 线程访问的是李四的 setA() 方法呢？
 
@@ -181,7 +181,7 @@ Thread t2 = new Thread(() -> lisi.setA());
 
 但是这样是有安全隐患的，别忘了张三和李四养的都是同一条狗，如果在 setA() 方法里对这条狗做了增删改操作，那么势必会引起线程安全问题。如果是这种情况，那么必须在狗对象里思考可能引起的线程安全问题，并作出相应的同步操作。
 
-这时候的内存结构是这样的：
+这时候的内存结构大概是这样的：
 
 ![image](https://miansen.wang/assets/20200606190817.png)
 
@@ -208,11 +208,15 @@ Thread t2 = new Thread(() -> zhangsan.setC());
 
 前面说过，synchronized 修饰静态方法，锁住的是相应的 Class 对象的监视器。Class 对象是啥对象，干啥用的？怎么生成的？下面我就简单的说一下。
 
-个人觉得学习 Java 有几座难以跨越的大山，除了并发这座大山之外，Class 对象也算得上一座大山了。理解了 Class 对象，才能理解类加载机制、类型机制、反射等等重要的知识点。
-
 ![image](https://miansen.wang/assets/20200606192158.jpg)
 
-简单的来说，Class 对象也就是 Class 类的对象，我们每写的一个 Java 类，都会编译成一个 .class 文件，这个文件包含了类的字段、方法、注解等等元信息。既然在 Java 里万物都是对象，那么 .class 文件就可以看成一个个的对象，哪个类的对象呢？就是 Class 类的对象。JVM 加载 .class 文件的时候，会在方法区生成一个 Class 对象。然后我们每 new 一个对象，其实都是根据这个对应的 Class 对象 new 出来的。
+个人觉得学习 Java 有几座难以跨越的大山，除了并发这座大山之外，Class 对象也算得上一座大山了。Class 对象其实不是很好理解，只有理解了 Class 对象，才能理解类加载机制、类型机制、反射以及 synchronized 修饰静态方法等等重要的知识点。
+
+简单的来说，Class 对象也就是 Class 类的对象，我们每写的一个 Java 类，都会编译成一个 .class 文件，这个文件包含了类的字段、方法、注解等等元信息。既然在 Java 里万物都是对象，那么 .class 文件就可以看成一个个的对象，哪个类的对象呢？就是 Class 类的对象。JVM 加载 .class 文件的时候，会在方法区生成一个个 Class 对象。然后我们每 new 一个实例对象，其实都是根据这个类对应的 Class 对象 new 出来的实例对象。不管你 new 多少个，这些实例对象都是根据 Class 对象这个模板生成的，这些实例对象都指向同一个 Class 对象。前面说对象头的时候，有个 Klass Words 空间，里面存的就是指向 Class 对象的指针，通过它就可以关联到 Class 对象。
+
+![image](https://miansen.wang/assets/20200607212042.png)
+
+所以 t1 和 t2 线程都访问 setC() 方法，由于 setC() 方法是静态方法，并且被 synchronized 修饰，锁的是张三对应的 Class 对象的监视器，所以会发生多个线程争同一把锁的问题。
 
 ![image](https://miansen.wang/assets/20200606194236.jpg)
 
@@ -221,7 +225,7 @@ Thread t2 = new Thread(() -> zhangsan.setC());
 ```java
 Thread t2 = new Thread(() -> zhangsan.setD());
 ```
-答案大家都想到了，也会发生多个线程争同一把锁的问题。因为 setC() 和 setD() 都是静态方法，synchronized 锁住的都是张三这个实例对应的 Class 对象的监视器。
+答案大家都想到了，也会发生多个线程争同一把锁的问题。因为 setC() 和 setD() 都是静态方法，synchronized 锁住的都是张三这个实例对应的 Class 对象的监视器，所以会发生多个线程争同一把锁的问题。
 
 ![image](https://miansen.wang/assets/20200606194915.jpg)
 
@@ -238,9 +242,13 @@ Thread t2 = new Thread(() -> zhangsan.setD());
 Thread t2 = new Thread(() -> lisi.setC());
 ```
 
-由于张三和李四的 Class 对象都是同一个，所以也会发生多个线程争同一把锁的问题。
+由于张三和李四的 Class 对象都是同一个，所以张三和李四的 setC() 方法锁的都是同一个 Class 对象的监视器，所以也会发生多个线程争同一把锁的问题。
 
-![image](https://miansen.wang/assets/20200606195444.jpg)
+![image](https://miansen.wang/assets/20200607213318.jpg)
+
+这时候的内存结构图大概是这样的：
+
+![image](https://miansen.wang/assets/20200607222238.png)
 
 ### synchronized 代码块
 
@@ -256,7 +264,7 @@ public void setE() {
 
 可以看到 setE() 方法有个同步代码块，锁住的是 dog 对象的监视器。
 
-t1 和 t2 线程都方法张三的 setE() 方法
+t1 和 t2 线程都访问张三的 setE() 方法
 
 ```java
 Thread t1 = new Thread(() -> zhangsan.setE());
@@ -277,6 +285,9 @@ Thread t2 = new Thread(() -> lisi.setE());
 
 ![image](https://miansen.wang/assets/20200606200944.jpg)
 
+这时候的内存结构图大概是这样的：
+
+![image](https://miansen.wang/assets/20200607223028.png)
 
 如果李四养的是另一条狗呢？
 
@@ -290,17 +301,29 @@ Thread t2 = new Thread(() -> lisi.setE());
 
 ![image](https://miansen.wang/assets/20200606201323.jpg)
 
+这时候的内存结构图大概是这样的：
+
+![image](https://miansen.wang/assets/20200607223937.png)
+
 ## 总结
 
-记住 synchronized 锁的是哪个对象的监视器：
+总的来说就两点：
+
+1.为什么需要 synchronized
+
+因为在 Java 内存模型下，所有的共享变量都存储在主内存中，每条线程还有自己的工作内存，线程的工作内存保存的是用到的共享变量的主内存副本的拷贝。线程对共享变量的所有操作都必须在工作内存中进行，而不能直接读写主内存。这就可能造成一个线程修改了一个变量的值，而另外一个线程还继续使用它在工作内存中的变量值的拷贝，造成数据的不一致。所以在多线程的环境中，必须要考虑多个线程访问临界资源的安全问题。可以使用 Java 语言提供的 synchronized 关键字或者 java.util.concurrent.locks 包下的各种锁（比如 ReentrantLock） 来保证线程操作的原子性。
+
+对于 synchronized 来说，当线程进入 synchronized 控制的代码块中，这个线程对共享变量的读取从主内存中获取，退出 synchronized 块，会将修改后的数据刷到主内存中。
+
+2.如何使用 synchronized
+
+要分清楚 synchronized 锁的是哪个对象的监视器：
 
 - synchronized 修饰实例方法，那么这个实例对象的监视器会被锁定。
 
 - synchronized 修饰静态方法，那么这个实例对象对应的 Class 对象的监视器会被锁定。
 
 - synchronized 作用于代码块，那么括号里的对象的监视器会被锁定。
-
-然后记住在 Java 内存模型下，当线程进入 synchronized 控制的代码块中，这个线程对共享变量的读取从主内存中获取，退出 synchronized 块，会将修改后的数据刷到主内存中。
 
 ## 参考资料
 
