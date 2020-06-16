@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 2.学习Kafka-重要概念
+title: 2.学习 Kafka - 重要概念
 date: 2020-05-20
 categories: Kafka
 tags: Kafka

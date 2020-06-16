@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 3.学习Kafka-Java客户端
+title: 3.学习 Kafka - Java 客户端
 date: 2020-05-21
 categories: Kafka
 tags: Kafka

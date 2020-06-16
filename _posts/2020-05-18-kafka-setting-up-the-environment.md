@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 1.学习Kafka-搭建集群环境
+title: 1.学习 Kafka - 搭建集群环境
 date: 2020-05-18
 categories: Kafka
 tags: Kafka
