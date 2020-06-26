@@ -302,7 +302,7 @@ public class ApplicationTest {
 
 ![image](https://miansen.wang/assets/20200616171939.png)
 
-可以看到有两条线程在处理消息的监听。
+可以看到有两条消费者线程在监听处理消息。
 
 ```
 消费者1收到了消息。topic: test01, partition: 0, offset: 880, key: null, value: hello kafka-2
@@ -338,7 +338,7 @@ public class ApplicationTest {
 生产者发送消息成功。topic: test01, partition: 2, offset: 740
 ```
 
-可以看到生成了 10 条消息，均匀的分布在 3 个分区里。
+可以看到生产者生产了 10 条消息，均匀的分布在 3 个分区里。
 
 ```xml
 消费者1收到了消息。topic: test01, partition: 0, offset: 887, key: null, value: hello kafka-1
@@ -363,6 +363,6 @@ public class ApplicationTest {
 消费者1收到了消息。topic: test01, partition: 1, offset: 723, key: null, value: hello kafka-9
 ```
 
-可以看到 "消费者1" 消费了 0 号和 1 号分区，"消费者2" 只消费了 2 号分区。这两个消费者位于同一个消费者组下，所以不会重复消费同一个分区。
+可以看到 "消费者1" 消费了 0 号和 1 号分区，"消费者2" 只消费了 2 号分区。由于这两个消费者位于同一个消费者组下，所以不会重复消费同一个分区。
 
 而 "消费者3" 位于不同的消费者组下，其它组对它不影响，跟它没关系。并且这个组只有它一个消费者，所以 "消费者3" 可以大饱口福，消费所有的分区。

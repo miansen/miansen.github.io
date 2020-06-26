@@ -37,7 +37,7 @@ spring.kafka.listener.missing-topics-fatal=false
 
 熟悉 Spring Boot 套路的同学可能就知道了，Spring Boot 一般都会提供一个 xxxProperties 的配置类，你在配置文件里配置的参数都会映射都这个配置类里。
 
-所以直接打开 `KafkaProperties` 类查看它有哪些属性就知道 Spring Boot 支持哪些配置参数了。
+所以直接搜索 `KafkaProperties` 类查看它有哪些属性就知道 Spring Boot 支持哪些配置参数了。
 
 ![image](https://miansen.wang/assets/20200620183631.png)
 
@@ -52,12 +52,12 @@ public class KafkaProducerService {
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
     
-    public void sendMessage(String value) {
-        sendMessage(null, value);
+    public void sendMessage(String topic, String value) {
+        sendMessage(topic, null, value);
     }
     
-    public void sendMessage(String key, String value) {
-        ListenableFuture<SendResult<String, String>> future = kafkaTemplate.sendDefault(value);
+    public void sendMessage(String topic, String key, String value) {
+        ListenableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, key, value);
         future.addCallback(success -> {
             RecordMetadata metadata = success.getRecordMetadata();
             System.out.println("生产者发送消息成功。topic: " + metadata.topic() + ", partition: " + metadata.partition() + ", offset: " + metadata.offset());
@@ -95,10 +95,9 @@ public class KafkaConsumerService {
     
     @KafkaListener(topics = {"test01"}, groupId = "group02")
     public void onMessage3(ConsumerRecord<String, String> record) {
-        System.out.println(String.format("[group02-消费者1]收到了消息。topic: %s, partition: %s, offset: %s, key: %s, value: %s",
+        System.out.println(String.format("[group02-消费者3]收到了消息。topic: %s, partition: %s, offset: %s, key: %s, value: %s",
                 record.topic(), record.partition(), record.offset(), record.key(), record.value()));
     }
-    
 }
 ```
 
@@ -115,12 +114,58 @@ public class ApplicationTest {
     private KafkaProducerService producerService;
 
     @Test
-    public void sendMessageTest(String value) throws Exception {
+    public void sendMessageTest() throws Exception {
         for (int i = 0; i < 10; i++) {
-            producerService.sendMessage(Integer.toString(i), "hello kafka-" + i + "-" + new Date().getTime());
+            producerService.sendMessage("test01", Integer.toString(i), "hello kafka-" + i + "-" + new Date().getTime());
         }
+        System.in.read(); // 让 main 线程阻塞一下，否则消费者线程可能会来不及消费就死了
     }
     
 }
 
 ```
+
+运行测试类，可以看到有三条消费者线程在监听消息，分别对应 KafkaConsumerService 类的 3 个 @KafkaListener 注解方法。
+
+![image](https://miansen.wang/assets/20200626113753.png)
+
+控制台输出如下：
+
+```
+生产者发送消息成功。topic: test01, partition: 2, offset: 773
+生产者发送消息成功。topic: test01, partition: 0, offset: 922
+生产者发送消息成功。topic: test01, partition: 2, offset: 774
+生产者发送消息成功。topic: test01, partition: 2, offset: 775
+生产者发送消息成功。topic: test01, partition: 1, offset: 740
+生产者发送消息成功。topic: test01, partition: 0, offset: 923
+生产者发送消息成功。topic: test01, partition: 1, offset: 741
+生产者发送消息成功。topic: test01, partition: 0, offset: 924
+生产者发送消息成功。topic: test01, partition: 0, offset: 925
+生产者发送消息成功。topic: test01, partition: 2, offset: 776
+[group02-消费者3]收到了消息。topic: test01, partition: 2, offset: 773, key: 0, value: hello kafka-0-1593143698305
+[group01-消费者1]收到了消息。topic: test01, partition: 2, offset: 773, key: 0, value: hello kafka-0-1593143698305
+[group01-消费者2]收到了消息。topic: test01, partition: 0, offset: 922, key: 1, value: hello kafka-1-1593143713542
+[group01-消费者1]收到了消息。topic: test01, partition: 2, offset: 774, key: 2, value: hello kafka-2-1593143744094
+[group01-消费者1]收到了消息。topic: test01, partition: 2, offset: 775, key: 3, value: hello kafka-3-1593143746141
+[group02-消费者3]收到了消息。topic: test01, partition: 0, offset: 922, key: 1, value: hello kafka-1-1593143713542
+[group02-消费者3]收到了消息。topic: test01, partition: 2, offset: 774, key: 2, value: hello kafka-2-1593143744094
+[group01-消费者2]收到了消息。topic: test01, partition: 1, offset: 740, key: 4, value: hello kafka-4-1593143746861
+[group01-消费者2]收到了消息。topic: test01, partition: 0, offset: 923, key: 5, value: hello kafka-5-1593143746893
+[group01-消费者2]收到了消息。topic: test01, partition: 1, offset: 741, key: 6, value: hello kafka-6-1593143746964
+[group01-消费者1]收到了消息。topic: test01, partition: 2, offset: 776, key: 9, value: hello kafka-9-1593143747124
+[group01-消费者2]收到了消息。topic: test01, partition: 0, offset: 924, key: 7, value: hello kafka-7-1593143747027
+[group01-消费者2]收到了消息。topic: test01, partition: 0, offset: 925, key: 8, value: hello kafka-8-1593143747063
+[group02-消费者3]收到了消息。topic: test01, partition: 0, offset: 923, key: 5, value: hello kafka-5-1593143746893
+[group02-消费者3]收到了消息。topic: test01, partition: 0, offset: 924, key: 7, value: hello kafka-7-1593143747027
+[group02-消费者3]收到了消息。topic: test01, partition: 0, offset: 925, key: 8, value: hello kafka-8-1593143747063
+[group02-消费者3]收到了消息。topic: test01, partition: 1, offset: 740, key: 4, value: hello kafka-4-1593143746861
+[group02-消费者3]收到了消息。topic: test01, partition: 1, offset: 741, key: 6, value: hello kafka-6-1593143746964
+[group02-消费者3]收到了消息。topic: test01, partition: 2, offset: 775, key: 3, value: hello kafka-3-1593143746141
+[group02-消费者3]收到了消息。topic: test01, partition: 2, offset: 776, key: 9, value: hello kafka-9-1593143747124
+```
+
+可以看到生产者生产了 10 条消息，均匀的分布在 3 个分区里。
+
+"消费者1" 只消费了 2 号分区，而"消费者2" 消费了 0 号和 1 号分区。由于这两个消费者位于同一个消费者组下，所以不会重复消费同一个分区。
+
+而 "消费者3" 位于不同的消费者组下，其它组对它不影响，跟它没关系。并且这个组只有它一个消费者，所以 "消费者3" 可以大饱口福，消费所有的分区。
