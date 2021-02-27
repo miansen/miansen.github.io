@@ -12,9 +12,9 @@ layout: default
               <i class="fa fa-calendar-check-o"></i> {{post.date | date: '%F'}}
             </span>&nbsp;
             {% if post.author %}
-              <span class="item">
+              <span class="item" style="display: none;">
                 <i class="fa fa-user"></i> {{post.author}}
-              </span>&nbsp;
+              </span>
             {% endif %}
             {% if post.categories %}
               {% include categories.html %}&nbsp;

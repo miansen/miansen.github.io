@@ -1,7 +1,7 @@
 # Welcome to Jekyll!
 #
 # 基本信息
-title: 龙德博客
+title: 不忘初心
 email: 1158827539@qq.com
 description: 个人IT技术分享
 baseurl: "" # the subpath of your site, e.g. /blog
@@ -15,7 +15,7 @@ permalink: /:year/:month/:day/:title/
 excerpt_separator: "\n\n\n\n"
 
 # 评论组件
-disqus_shortname: 龙德
+disqus_shortname: 不忘初心
 
 # statistic analysis 统计代码
 baidu_tongji_id: 5bfc250f2bc29307e33448e1fc9d3fc6
