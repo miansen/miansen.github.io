@@ -2,8 +2,8 @@
 layout: post
 title: 五、SpringCloud-服务容错 Hystrix（断路器）
 date: 2019-09-30
-categories: SpringCloud
-tags: SpringCloud Hystrix
+categories: Spring全家桶
+tags: SpringCloud
 author: 龙德
 ---
 

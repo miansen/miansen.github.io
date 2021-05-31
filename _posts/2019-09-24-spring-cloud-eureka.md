@@ -2,7 +2,7 @@
 layout: post
 title: 二、Spring Cloud-服务注册中心 Eureka
 date: 2019-09-24
-categories: SpringCloud
+categories: Spring全家桶
 tags: SpringCloud
 author: 龙德
 ---

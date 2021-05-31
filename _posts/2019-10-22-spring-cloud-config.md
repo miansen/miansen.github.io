@@ -2,8 +2,8 @@
 layout: post
 title: 八、SpringCloud-服务配置中心 Spring-Cloud-Config
 date: 2019-10-22
-categories: SpringCloud
-tags: SpringCloud Spring-Cloud-Config
+categories: Spring全家桶
+tags: SpringCloud
 author: 龙德
 ---
 

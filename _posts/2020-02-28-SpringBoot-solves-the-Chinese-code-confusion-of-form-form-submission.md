@@ -2,8 +2,8 @@
 layout: post
 title: SpringBoot解决form表单提交中文乱码
 date: 2020-02-28
-categories: SpringBoot
-tags: 乱码
+categories: Spring全家桶
+tags: SpringBoot
 author: 龙德
 ---
 

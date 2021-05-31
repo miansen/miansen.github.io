@@ -2,8 +2,8 @@
 layout: post
 title: SpringBoot 处理全局异常，包括 404 错误，返回 JSON 或者页面
 date: 2020-01-21
-categories: SpringBoot
-tags: 异常处理 HandlerExceptionResolver ControllerAdvice ExceptionHandler ErrorController
+categories: Spring全家桶
+tags: SpringBoot
 author: 龙德
 ---
 

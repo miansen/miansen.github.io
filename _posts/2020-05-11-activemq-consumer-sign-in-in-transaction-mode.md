@@ -2,7 +2,7 @@
 layout: post
 title: 12.学习ActiveMQ-事务模式下消费者签收
 date: 2020-05-11
-categories: ActiveMQ
+categories: 消息队列
 tags: ActiveMQ
 author: 龙德
 ---

@@ -2,7 +2,7 @@
 layout: post
 title: 4.学习ActiveMQ-消息消费者（队列模式）
 date: 2020-05-08
-categories: ActiveMQ
+categories: 消息队列
 tags: ActiveMQ
 author: 龙德
 ---

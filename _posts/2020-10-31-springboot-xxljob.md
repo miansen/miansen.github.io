@@ -2,8 +2,8 @@
 layout: post
 title: springboot 集成 xxl-job 报错
 date: 2020-10-31
-categories: SpringBoot
-tags: SpringBoot xxl-job
+categories: Spring全家桶
+tags: SpringBoot
 author: 龙德
 ---
 

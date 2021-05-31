@@ -9,17 +9,17 @@ layout: default
         <small>
           <span class="item">
             <i class="fa fa-calendar-check-o"></i> {{page.date | date: '%F'}}
-          </span>
+          </span>&nbsp;
           {% if page.author %}
           <span class="item" style="display: none;">
             <i class="fa fa-user"></i> {{page.author}}
           </span>
           {% endif %}
           {% if page.categories %}
-          {% include categories.html %}
+          {% include categories.html %}&nbsp;
           {% endif %}
           {% if page.tags %}
-          {% include tags.html %}
+          {% include tags.html %}&nbsp;
           {% endif %}
         </small>
         <hr>

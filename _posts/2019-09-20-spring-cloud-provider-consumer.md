@@ -2,7 +2,7 @@
 layout: post
 title: 一、Spring Cloud-服务提供者与服务消费者
 date: 2019-09-20
-categories: SpringCloud
+categories: Spring全家桶
 tags: SpringCloud
 author: 龙德
 ---

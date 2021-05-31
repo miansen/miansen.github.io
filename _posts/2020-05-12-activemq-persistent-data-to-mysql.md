@@ -2,7 +2,7 @@
 layout: post
 title: 15.学习ActiveMQ-持久化数据到MySQL
 date: 2020-05-12
-categories: ActiveMQ
+categories: 消息队列
 tags: ActiveMQ
 author: 龙德
 ---

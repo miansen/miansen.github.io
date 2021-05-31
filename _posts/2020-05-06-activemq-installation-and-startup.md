@@ -2,7 +2,7 @@
 layout: post
 title: 2.学习ActiveMQ-安装与启动
 date: 2020-05-06
-categories: ActiveMQ
+categories: 消息队列
 tags: ActiveMQ
 author: 龙德
 ---

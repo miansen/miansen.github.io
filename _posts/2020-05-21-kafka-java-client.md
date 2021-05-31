@@ -2,7 +2,7 @@
 layout: post
 title: 3.学习 Kafka - Java 客户端
 date: 2020-05-21
-categories: Kafka
+categories: 消息队列
 tags: Kafka
 author: 龙德
 ---

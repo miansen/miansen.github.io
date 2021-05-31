@@ -2,7 +2,7 @@
 layout: post
 title: 4.学习 Kafka - 在 Spring MVC 中使用 Kafka
 date: 2020-05-22
-categories: Kafka
+categories: 消息队列
 tags: Kafka SpringMVC
 author: 龙德
 ---

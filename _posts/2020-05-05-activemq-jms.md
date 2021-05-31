@@ -2,7 +2,7 @@
 layout: post
 title: 1.学习ActiveMQ-关于JMS
 date: 2020-05-05
-categories: ActiveMQ
+categories: 消息队列
 tags: ActiveMQ
 author: 龙德
 ---

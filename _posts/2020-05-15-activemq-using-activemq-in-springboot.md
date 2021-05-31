@@ -2,7 +2,7 @@
 layout: post
 title: 17.学习ActiveMQ-在SpringBoot中使用ActiveMQ
 date: 2020-05-15
-categories: ActiveMQ
+categories: 消息队列
 tags: ActiveMQ SpringBoot
 author: 龙德
 ---

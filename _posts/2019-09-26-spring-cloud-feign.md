@@ -2,8 +2,8 @@
 layout: post
 title: 四、Spring Cloud-接口调用 Feign
 date: 2019-09-26
-categories: SpringCloud
-tags: Feign
+categories: Spring全家桶
+tags: SpringCloud
 author: 龙德
 ---
 

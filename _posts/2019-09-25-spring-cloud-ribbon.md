@@ -2,8 +2,8 @@
 layout: post
 title: 三、Spring Cloud-负载均衡 Ribbon
 date: 2019-09-25
-categories: SpringCloud
-tags: Ribbon
+categories: Spring全家桶
+tags: SpringCloud
 author: 龙德
 ---
 

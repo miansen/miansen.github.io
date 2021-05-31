@@ -2,8 +2,8 @@
 layout: post
 title: 六、SpringCloud-路由器和过滤器 Zuul
 date: 2019-10-12
-categories: SpringCloud
-tags: SpringCloud Zuul
+categories: Spring全家桶
+tags: SpringCloud
 author: 龙德
 ---
 

@@ -2,7 +2,7 @@
 layout: post
 title: 四、SpringCloud-高可用的服务注册中心
 date: 2019-09-27
-categories: SpringCloud
+categories: Spring全家桶
 tags: SpringCloud
 author: 龙德
 ---

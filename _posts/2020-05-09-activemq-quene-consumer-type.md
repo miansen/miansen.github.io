@@ -2,7 +2,7 @@
 layout: post
 title: 5.学习ActiveMQ-队列模式的特点以及消费者消费消息的3种情况
 date: 2020-05-09
-categories: ActiveMQ
+categories: 消息队列
 tags: ActiveMQ
 author: 龙德
 ---

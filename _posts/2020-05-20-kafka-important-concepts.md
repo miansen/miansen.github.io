@@ -2,7 +2,7 @@
 layout: post
 title: 2.学习 Kafka - 重要概念
 date: 2020-05-20
-categories: Kafka
+categories: 消息队列
 tags: Kafka
 author: 龙德
 ---

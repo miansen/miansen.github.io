@@ -2,7 +2,7 @@
 layout: post
 title: 16.学习ActiveMQ-在SpringMVC中使用ActiveMQ
 date: 2020-05-13
-categories: ActiveMQ
+categories: 消息队列
 tags: ActiveMQ SpringMVC
 author: 龙德
 ---

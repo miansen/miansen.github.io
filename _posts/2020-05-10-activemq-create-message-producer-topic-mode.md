@@ -2,7 +2,7 @@
 layout: post
 title: 6.学习ActiveMQ-消息生产者（主题模式）
 date: 2020-05-10
-categories: ActiveMQ
+categories: 消息队列
 tags: ActiveMQ
 author: 龙德
 ---

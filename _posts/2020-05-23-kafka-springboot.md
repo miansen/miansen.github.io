@@ -2,7 +2,7 @@
 layout: post
 title: 5.学习 Kafka - 在 Spring Boot 中使用 Kafka
 date: 2020-05-23
-categories: Kafka
+categories: 消息队列
 tags: Kafka SpringBoot
 author: 龙德
 ---
